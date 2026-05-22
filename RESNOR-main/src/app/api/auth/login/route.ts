@@ -68,6 +68,8 @@ export async function POST(request: NextRequest) {
         avatar: user.avatar,
         studentId: user.studentId,
         institution: user.institution,
+        phone: user.phone,
+        semester: user.semester,
       },
       token,
     })

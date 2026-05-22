@@ -37,6 +37,9 @@ interface AppState {
     studentId?: string | null
   } | null
   setCurrentUser: (user: AppState['currentUser']) => void
+  breakReminder: { show: boolean; autoStartLongBreak: boolean }
+  triggerBreakReminder: () => void
+  dismissBreakReminder: () => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -47,4 +50,7 @@ export const useAppStore = create<AppState>((set) => ({
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   currentUser: null,
   setCurrentUser: (user) => set({ currentUser: user }),
+  breakReminder: { show: false, autoStartLongBreak: false },
+  triggerBreakReminder: () => set({ breakReminder: { show: true, autoStartLongBreak: true } }),
+  dismissBreakReminder: () => set({ breakReminder: { show: false, autoStartLongBreak: false } }),
 }))

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useAppStore } from '@/stores/app'
+import { useAuthStore } from '@/stores/auth'
 import {
   Card,
   CardContent,
@@ -14,6 +16,7 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   Collapsible,
   CollapsibleContent,
@@ -46,6 +49,7 @@ import {
   Zap,
   Trophy,
   CalendarDays,
+  Trash2,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -56,9 +60,9 @@ type SessionType = 'focus' | 'shortBreak' | 'longBreak'
 interface SessionRecord {
   id: string
   type: SessionType
-  startTime: string
   duration: number // minutes
-  completedAt: string
+  startedAt: string // ISO string
+  completedAt: string // ISO string
 }
 
 interface TimerSettings {
@@ -121,7 +125,9 @@ const DEFAULT_SETTINGS: TimerSettings = {
 }
 
 const WEEKLY_CHART_CONFIG = {
-  minutes: { label: 'Focus Minutes', color: 'oklch(0.646 0.222 41.116)' },
+  focus: { label: 'Focus', color: SESSION_COLORS.focus.primary },
+  shortBreak: { label: 'Short Break', color: SESSION_COLORS.shortBreak.primary },
+  longBreak: { label: 'Long Break', color: SESSION_COLORS.longBreak.primary },
 } satisfies ChartConfig
 
 // --- Helper: format time ---
@@ -141,54 +147,10 @@ function getDayLabel(daysAgo: number): string {
 }
 
 // --- Mock weekly data ---
-function generateWeeklyData(): { day: string; minutes: number }[] {
-  return Array.from({ length: 7 }, (_, i) => ({
-    day: getDayLabel(6 - i),
-    minutes: [45, 60, 30, 90, 75, 50, 0][6 - i],
-  }))
-}
+// (removed — now fetched from API)
 
 // --- Mock session history ---
-function generateMockHistory(): SessionRecord[] {
-  const now = new Date()
-  return [
-    {
-      id: 's1',
-      type: 'focus',
-      startTime: new Date(now.getTime() - 90 * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      duration: 25,
-      completedAt: new Date(now.getTime() - 65 * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    },
-    {
-      id: 's2',
-      type: 'shortBreak',
-      startTime: new Date(now.getTime() - 65 * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      duration: 5,
-      completedAt: new Date(now.getTime() - 60 * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    },
-    {
-      id: 's3',
-      type: 'focus',
-      startTime: new Date(now.getTime() - 60 * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      duration: 25,
-      completedAt: new Date(now.getTime() - 35 * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    },
-    {
-      id: 's4',
-      type: 'shortBreak',
-      startTime: new Date(now.getTime() - 35 * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      duration: 5,
-      completedAt: new Date(now.getTime() - 30 * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    },
-    {
-      id: 's5',
-      type: 'focus',
-      startTime: new Date(now.getTime() - 30 * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      duration: 25,
-      completedAt: new Date(now.getTime() - 5 * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    },
-  ]
-}
+// (removed — now fetched from API)
 
 // --- Confetti Particle ---
 function ConfettiParticle({ index }: { index: number }) {
@@ -458,6 +420,8 @@ function SessionDots({
 
 // --- Main Pomodoro Timer Component ---
 export default function PomodoroTimer() {
+  const authUser = useAuthStore((s) => s.user)
+
   // Timer state
   const [sessionType, setSessionType] = useState<SessionType>('focus')
   const [timeRemaining, setTimeRemaining] = useState(DEFAULT_SETTINGS.focusDuration * 60)
@@ -466,14 +430,15 @@ export default function PomodoroTimer() {
   const [sessionsBeforeLongBreak] = useState(4)
   const [showConfetti, setShowConfetti] = useState(false)
   const [showCompleteOverlay, setShowCompleteOverlay] = useState(false)
-  const [completedSessions, setCompletedSessions] = useState(3) // mock: already completed 3
-  const [totalFocusMinutes, setTotalFocusMinutes] = useState(75) // mock
-  const [currentStreak, setCurrentStreak] = useState(3) // mock
-  const [sessionHistory, setSessionHistory] = useState<SessionRecord[]>(generateMockHistory())
+  const [completedSessions, setCompletedSessions] = useState(0)
+  const [totalFocusMinutes, setTotalFocusMinutes] = useState(0)
+  const [currentStreak, setCurrentStreak] = useState(0)
+  const [sessionHistory, setSessionHistory] = useState<SessionRecord[]>([])
 
   // Settings state
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(true)
   const [settings, setSettings] = useState<TimerSettings>(DEFAULT_SETTINGS)
+  const [settingsLoaded, setSettingsLoaded] = useState(false)
 
   // Refs
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -494,29 +459,104 @@ export default function PomodoroTimer() {
 
   const colors = SESSION_COLORS[sessionType]
 
-  // Session complete handler (declared before useEffect that uses it)
+  // Fetch settings on mount
+  useEffect(() => {
+    if (!authUser?.id) return
+    fetch(`/api/pomodoro/settings?student_id=${authUser.id}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setSettings({
+          focusDuration: data.focusDuration ?? DEFAULT_SETTINGS.focusDuration,
+          shortBreakDuration: data.shortBreakDuration ?? DEFAULT_SETTINGS.shortBreakDuration,
+          longBreakDuration: data.longBreakDuration ?? DEFAULT_SETTINGS.longBreakDuration,
+          autoStart: data.autoStart ?? DEFAULT_SETTINGS.autoStart,
+          soundEnabled: data.soundEnabled ?? DEFAULT_SETTINGS.soundEnabled,
+        })
+        setSettingsLoaded(true)
+      })
+      .catch(() => setSettingsLoaded(true))
+  }, [authUser?.id])
+
+  // Fetch today's sessions and stats
+  useEffect(() => {
+    if (!authUser?.id) return
+    fetch(`/api/pomodoro/sessions?student_id=${authUser.id}&days=7`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.sessions) {
+          const mapped: SessionRecord[] = data.sessions.map((s: any) => ({
+            id: s.id,
+            type: s.type as SessionType,
+            duration: s.duration,
+            startedAt: s.startedAt,
+            completedAt: s.completedAt,
+          }))
+          setSessionHistory(mapped)
+        }
+      })
+      .catch(() => {})
+    fetch(`/api/pomodoro/stats?student_id=${authUser.id}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (typeof data.sessionsDone === 'number') setCompletedSessions(data.sessionsDone)
+        if (typeof data.focusMinutes === 'number') setTotalFocusMinutes(data.focusMinutes)
+        if (typeof data.streak === 'number') setCurrentStreak(data.streak)
+      })
+      .catch(() => {})
+  }, [authUser?.id])
+
+  // Sync timer to loaded settings on first load
+  useEffect(() => {
+    if (settingsLoaded) {
+      switch (sessionType) {
+        case 'focus': setTimeRemaining(settings.focusDuration * 60); break
+        case 'shortBreak': setTimeRemaining(settings.shortBreakDuration * 60); break
+        case 'longBreak': setTimeRemaining(settings.longBreakDuration * 60); break
+      }
+    }
+    // Only run when settings first load
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settingsLoaded])
+
+  // Session complete handler
   const handleSessionComplete = useCallback(() => {
     const now = new Date()
+    const startedAt = new Date(now.getTime() - totalDuration * 1000)
     const completedRecord: SessionRecord = {
       id: `s${Date.now()}`,
       type: sessionType,
-      startTime: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       duration: totalDuration / 60,
-      completedAt: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      startedAt: startedAt.toISOString(),
+      completedAt: now.toISOString(),
     }
 
     setSessionHistory((prev) => [completedRecord, ...prev])
 
     if (sessionType === 'focus') {
       setCompletedSessions((prev) => prev + 1)
-      setTotalFocusMinutes((prev) => prev + settings.focusDuration)
+      setTotalFocusMinutes((prev) => prev + totalDuration / 60)
       setCurrentStreak((prev) => prev + 1)
       setShowConfetti(true)
       setTimeout(() => setShowConfetti(false), 2500)
     }
 
+    // Save to backend
+    if (authUser?.id) {
+      fetch('/api/pomodoro/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId: authUser.id,
+          type: sessionType,
+          duration: totalDuration / 60,
+          startedAt: startedAt.toISOString(),
+          completedAt: now.toISOString(),
+        }),
+      }).catch(() => {})
+    }
+
     setShowCompleteOverlay(true)
-  }, [sessionType, totalDuration, settings.focusDuration])
+  }, [sessionType, totalDuration, authUser?.id])
 
   // Use refs for latest values so interval callback can access them
   const handleSessionCompleteRef = useRef(handleSessionComplete)
@@ -553,6 +593,20 @@ export default function PomodoroTimer() {
       }
     }
   }, [isRunning])
+
+  // Auto-start long break when triggered by study break reminder
+  const breakReminder = useAppStore((s) => s.breakReminder)
+  const dismissBreakReminder = useAppStore((s) => s.dismissBreakReminder)
+  useEffect(() => {
+    if (breakReminder.autoStartLongBreak) {
+      dismissBreakReminder()
+      setSessionType('longBreak')
+      setTimeRemaining(settings.longBreakDuration * 60)
+      setCurrentSession(4) // simulate reaching long break threshold
+      setIsRunning(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const getNextSessionType = useCallback((): SessionType => {
     if (sessionType === 'focus') {
@@ -645,19 +699,55 @@ export default function PomodoroTimer() {
             setTimeRemaining((typeof value === 'number' ? value : 0) * 60)
           }
         }
+        // Persist to backend
+        if (authUser?.id) {
+          fetch('/api/pomodoro/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ studentId: authUser.id, ...next }),
+          }).catch(() => {})
+        }
         return next
       })
     },
-    [isRunning, sessionType, timeRemaining],
+    [isRunning, sessionType, timeRemaining, authUser?.id],
   )
 
+  const handleDeleteSession = useCallback((sessionId: string) => {
+    setSessionHistory((prev) => prev.filter((s) => s.id !== sessionId))
+    fetch(`/api/pomodoro/sessions?id=${sessionId}`, { method: 'DELETE' }).catch(() => {})
+  }, [])
+
+  const handleDeleteAll = useCallback(() => {
+    if (!authUser?.id) return
+    setSessionHistory([])
+    setCompletedSessions(0)
+    setTotalFocusMinutes(0)
+    setCurrentStreak(0)
+    fetch(`/api/pomodoro/sessions?student_id=${authUser.id}&all=true`, { method: 'DELETE' }).catch(() => {})
+  }, [authUser?.id])
+
   const weeklyData = useMemo(() => {
-    const data = generateWeeklyData()
-    // Update today with real data
-    const todayIndex = data.length - 1
-    data[todayIndex].minutes = totalFocusMinutes
-    return data
-  }, [totalFocusMinutes])
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date()
+      date.setDate(date.getDate() - (6 - i))
+      date.setHours(0, 0, 0, 0)
+      return date
+    })
+    return days.map((day, i) => {
+      const dayEnd = new Date(day)
+      dayEnd.setHours(23, 59, 59, 999)
+      const daySessions = sessionHistory.filter((s) => {
+        const completed = new Date(s.completedAt)
+        return completed >= day && completed <= dayEnd
+      })
+      const focus = daySessions.filter((s) => s.type === 'focus').reduce((sum, s) => sum + s.duration, 0)
+      const shortBreak = daySessions.filter((s) => s.type === 'shortBreak').reduce((sum, s) => sum + s.duration, 0)
+      const longBreak = daySessions.filter((s) => s.type === 'longBreak').reduce((sum, s) => sum + s.duration, 0)
+      const label = i === 6 ? 'Today' : i === 5 ? 'Yesterday' : day.toLocaleDateString('en-US', { weekday: 'short' })
+      return { day: label, focus, shortBreak, longBreak }
+    })
+  }, [sessionHistory])
 
   const SessionIcon = colors.icon
 
@@ -855,35 +945,56 @@ export default function PomodoroTimer() {
             <div className="space-y-4">
               {/* Stat items */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col items-center gap-1 p-3 rounded-xl bg-emerald-500/10">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                  <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                    {completedSessions}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground font-medium">
-                    Sessions Done
-                  </span>
-                </div>
-                <div className="flex flex-col items-center gap-1 p-3 rounded-xl bg-amber-500/10">
-                  <Clock className="w-5 h-5 text-amber-500" />
-                  <span className="text-2xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">
-                    {totalFocusMinutes}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground font-medium">
-                    Focus Minutes
-                  </span>
-                </div>
-                <div className="flex flex-col items-center gap-1 p-3 rounded-xl bg-rose-500/10 col-span-2">
-                  <Flame className="w-5 h-5 text-rose-500" />
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-rose-600 dark:text-rose-400 tabular-nums">
-                      {currentStreak}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground font-medium">
-                      Consecutive Pomodoros Streak
-                    </span>
-                  </div>
-                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex flex-col items-center gap-1 p-3 rounded-xl bg-emerald-500/10 cursor-help">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                      <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                        {completedSessions}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-medium">
+                        Sessions Done
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-48 text-center">
+                    <p className="text-xs">Total completed sessions (focus + breaks) today</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex flex-col items-center gap-1 p-3 rounded-xl bg-amber-500/10 cursor-help">
+                      <Clock className="w-5 h-5 text-amber-500" />
+                      <span className="text-2xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+                        {totalFocusMinutes}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-medium">
+                        Focus Minutes
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-48 text-center">
+                    <p className="text-xs">Total minutes spent in focus sessions today</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex flex-col items-center gap-1 p-3 rounded-xl bg-rose-500/10 col-span-2 cursor-help">
+                      <Flame className="w-5 h-5 text-rose-500" />
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl font-bold text-rose-600 dark:text-rose-400 tabular-nums">
+                          {currentStreak}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground font-medium">
+                          Consecutive Pomodoros Streak
+                        </span>
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-56 text-center">
+                    <p className="text-xs">Number of focus sessions completed in a row today — resets if you skip or miss one</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
 
               <Separator />
@@ -910,12 +1021,9 @@ export default function PomodoroTimer() {
                       domain={[0, 'auto']}
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar
-                      dataKey="minutes"
-                      fill="oklch(0.646 0.222 41.116)"
-                      radius={[4, 4, 0, 0]}
-                      maxBarSize={32}
-                    />
+                    <Bar dataKey="focus" stackId="a" fill={SESSION_COLORS.focus.primary} radius={[0, 0, 0, 0]} maxBarSize={32} />
+                    <Bar dataKey="shortBreak" stackId="a" fill={SESSION_COLORS.shortBreak.primary} radius={[0, 0, 0, 0]} maxBarSize={32} />
+                    <Bar dataKey="longBreak" stackId="a" fill={SESSION_COLORS.longBreak.primary} radius={[4, 4, 0, 0]} maxBarSize={32} />
                   </BarChart>
                 </ChartContainer>
               </div>
@@ -926,25 +1034,46 @@ export default function PomodoroTimer() {
         {/* Session History */}
         <Card className="lg:col-span-1">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Timer className="w-4 h-4 text-teal-500" />
-              Session History
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Timer className="w-4 h-4 text-teal-500" />
+                Session History
+              </CardTitle>
+              {sessionHistory.length > 0 && (
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleDeleteAll}
+                  className="p-1.5 rounded-md text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                  title="Delete all sessions"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </motion.button>
+              )}
+            </div>
             <CardDescription>Today&apos;s completed sessions</CardDescription>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[320px] pr-3">
               <div className="space-y-3">
-                {sessionHistory.length === 0 ? (
+                {sessionHistory.filter((s) => {
+                  const d = new Date(s.completedAt)
+                  const today = new Date()
+                  return d.toDateString() === today.toDateString()
+                }).length === 0 ? (
                   <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
                     <Clock className="w-8 h-8 opacity-40" />
                     <p className="text-sm">No sessions yet today</p>
                     <p className="text-xs">Start your first pomodoro!</p>
                   </div>
                 ) : (
-                  sessionHistory.map((session) => {
+                  sessionHistory.filter((s) => {
+                    const d = new Date(s.completedAt)
+                    const today = new Date()
+                    return d.toDateString() === today.toDateString()
+                  }).map((session) => {
                     const sessionColors = SESSION_COLORS[session.type]
                     const SessionTypeIcon = sessionColors.icon
+                    const startTime = new Date(session.startedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 
                     return (
                       <motion.div
@@ -953,7 +1082,6 @@ export default function PomodoroTimer() {
                         animate={{ opacity: 1, x: 0 }}
                         className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors"
                       >
-                        {/* Color dot */}
                         <div
                           className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                           style={{ backgroundColor: `${sessionColors.ring}15` }}
@@ -967,14 +1095,24 @@ export default function PomodoroTimer() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium">{sessionColors.label}</p>
                           <p className="text-xs text-muted-foreground">
-                            {session.startTime} &middot; {session.duration} min
+                            {startTime} &middot; {session.duration} min
                           </p>
                         </div>
 
-                        <CheckCircle2
-                          className="w-4 h-4 shrink-0"
-                          style={{ color: sessionColors.ring }}
-                        />
+                        <div className="flex items-center gap-1">
+                          <CheckCircle2
+                            className="w-4 h-4 shrink-0"
+                            style={{ color: sessionColors.ring }}
+                          />
+                          <motion.button
+                            whileTap={{ scale: 0.85 }}
+                            onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id) }}
+                            className="p-1 rounded-md text-muted-foreground/40 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                            title="Delete this session"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </motion.button>
+                        </div>
                       </motion.div>
                     )
                   })

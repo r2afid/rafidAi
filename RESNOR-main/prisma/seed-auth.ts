@@ -17,6 +17,8 @@ async function seedDemoUsers() {
       password: 'demo123',
       studentId: 'CSE-331',
       institution: 'Daffodil International University',
+      phone: '01712345601',
+      semester: '7th',
     },
     {
       email: 'dr.khan@diu.edu.bd',
@@ -32,6 +34,8 @@ async function seedDemoUsers() {
       password: 'demo123',
       studentId: 'CSE-332',
       institution: 'Daffodil International University',
+      phone: '01712345602',
+      semester: '5th',
     },
     {
       email: 'tasnim@diu.edu.bd',
@@ -40,6 +44,8 @@ async function seedDemoUsers() {
       password: 'demo123',
       studentId: 'CSE-330',
       institution: 'Daffodil International University',
+      phone: '01712345603',
+      semester: '3rd',
     },
   ]
 
@@ -54,6 +60,8 @@ async function seedDemoUsers() {
           passwordHash: hashPassword(u.password),
           studentId: u.studentId || null,
           institution: u.institution || null,
+          phone: u.phone || null,
+          semester: u.semester || null,
         },
       })
       console.log(`  Created user: ${u.email} (${u.role})`)

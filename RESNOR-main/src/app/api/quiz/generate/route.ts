@@ -105,10 +105,20 @@ Rules:
         })
 
         const content = completion.choices[0]?.message?.content || ''
-        const jsonMatch = content.match(/\{[\s\S]*\}/)
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0])
-          if (parsed.questions && Array.isArray(parsed.questions)) rawQuestions = parsed.questions
+        const jsonMatches = content.match(/\{[\s\S]*?\}/g)
+        if (jsonMatches) {
+          const allQuestions: any[] = []
+          for (const match of jsonMatches) {
+            try {
+              const parsed = JSON.parse(match)
+              if (parsed.questions && Array.isArray(parsed.questions)) {
+                allQuestions.push(...parsed.questions)
+              } else if (parsed.question) {
+                allQuestions.push(parsed)
+              }
+            } catch { /* skip invalid fragments */ }
+          }
+          if (allQuestions.length > 0) rawQuestions = allQuestions
         }
       } catch (aiError) {
         console.error('Groq AI error:', aiError)
@@ -125,9 +135,20 @@ Rules:
       }))
     }
 
+    // Find or create the topic by name with a valid course
+    const topicName = topicNames[0]
+    let topic = await db.topic.findFirst({ where: { name: topicName } })
+    if (!topic) {
+      let course = await db.course.findFirst()
+      if (!course) {
+        course = await db.course.create({ data: { name: 'General', code: 'GEN', teacherId: 'default' } })
+      }
+      topic = await db.topic.create({ data: { name: topicName, courseId: course.id } })
+    }
+
     const dbQuestions = toDbFormat(rawQuestions)
     const quiz = await db.quiz.create({
-      data: { topicId: 'gen', title, difficulty: difficulty || 'medium', timeLimit: 600 },
+      data: { topicId: topic.id, title, difficulty: difficulty || 'medium', timeLimit: 600 },
     })
     const created: any[] = []
     for (const q of dbQuestions) {

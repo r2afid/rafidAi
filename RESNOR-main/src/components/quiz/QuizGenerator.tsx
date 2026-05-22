@@ -33,6 +33,7 @@ import {
   Link2,
   Maximize2,
   X,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -368,6 +369,14 @@ export default function QuizGenerator() {
         .then((data) => {
           if (data.attempt_id) setAttemptId(data.attempt_id)
           fetchHistory()
+          // Award XP for completing a quiz
+          fetch('/api/gamification/award-xp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ student_id: authUser.id, amount: 2000 }),
+          })
+            .then(() => window.dispatchEvent(new Event('xp-updated')))
+            .catch(() => {})
         })
         .catch(() => {})
     }
@@ -523,7 +532,7 @@ export default function QuizGenerator() {
   const scoreHistory = useMemo(() => {
     const past = historyAttempts.map((a, i) => ({
       quiz: `#${historyAttempts.length - i}`,
-      score: Math.round(a.score),
+      score: a.totalQuestions > 0 ? Math.round((a.correctCount / a.totalQuestions) * 100) : 0,
     })).reverse()
     if (step === 'results') return [...past, { quiz: 'Now', score: scorePercent }]
     return past
@@ -777,17 +786,23 @@ export default function QuizGenerator() {
       )}
 
       {/* Generate Button */}
-      <Button
-        size="lg"
-        className="w-full text-base"
-        disabled={(selectedTopics.length === 0 && !customTopic.trim()) || generating}
-        onClick={handleGenerateQuiz}
-      >
-        <>
-          Generate Quiz with AI
-          <ChevronRight className="size-5" />
-        </>
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button
+          size="lg"
+          className="flex-1 text-base"
+          disabled={(selectedTopics.length === 0 && !customTopic.trim()) || generating}
+          onClick={handleGenerateQuiz}
+        >
+          <>
+            Generate Quiz with AI
+            <ChevronRight className="size-5" />
+          </>
+        </Button>
+        <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-[11px] font-semibold text-amber-700 dark:text-amber-400 shrink-0">
+          <Sparkles className="size-3.5" />
+          +2,000 XP
+        </div>
+      </div>
 
       {/* Quiz History */}
       {historyAttempts.length > 0 && (
@@ -1198,6 +1213,20 @@ export default function QuizGenerator() {
         </CardContent>
       </Card>
 
+      {/* XP Reward Notice */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="flex items-center justify-center gap-2 rounded-xl border border-amber-500/20 bg-gradient-to-r from-amber-500/5 via-amber-500/10 to-amber-500/5 px-4 py-3 text-sm"
+      >
+        <Sparkles className="size-4 text-amber-500" />
+        <span className="text-muted-foreground">
+          You earned <strong className="text-amber-600 dark:text-amber-400">+2,000 XP</strong> for completing this quiz
+        </span>
+        <Sparkles className="size-4 text-amber-500" />
+      </motion.div>
+
       {/* Review Mistakes */}
       <AnimatePresence>
         {showReview && (
@@ -1551,8 +1580,8 @@ export default function QuizGenerator() {
           </Card>
         ) : (
           historyAttempts.map((att: any) => {
-            const correctCount = att.answers?.filter((a: any) => a.isCorrect).length || 0
-            const score = att.totalQuestions > 0 ? Math.round((correctCount / att.totalQuestions) * 100) : 0
+            const score = att.score || 0
+            const correctCount = att.correctCount || 0
             return (
               <Card key={att.id} className="hover:border-primary/50 transition-colors cursor-pointer" onClick={() => viewHistoryAttempt(att)}>
                 <CardContent className="flex items-center gap-4 pt-4 pb-4">

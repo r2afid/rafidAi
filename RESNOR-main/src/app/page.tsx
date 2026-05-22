@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useAppStore, type PageKey } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
 import { cn } from '@/lib/utils'
@@ -31,13 +30,14 @@ import {
   CheckCheck, CheckCircle2, MessageSquare, Award, Star,
   Timer, Users, StickyNote,
   Library, CalendarDays, UserCircle, Settings,
-  FolderOpen, LogOut,
+  FolderOpen, LogOut, ChevronDown,
 } from 'lucide-react'
-import { useState, useSyncExternalStore, useCallback } from 'react'
+import { useState, useSyncExternalStore, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import SearchCommand from '@/components/SearchCommand'
 import OnboardingTour from '@/components/OnboardingTour'
 import AuthPage from '@/components/auth/AuthPage'
+import { useTelemetry } from '@/hooks/useTelemetry'
 
 // Feature imports
 import GrowthDashboard from '@/components/dashboard/GrowthDashboard'
@@ -170,7 +170,43 @@ const mockTeacherNotifications = [
 // --- Quick Stats Section ---
 function QuickStats() {
   const { currentUser } = useAppStore()
+  const authUser = useAuthStore((s) => s.user)
   const isTeacher = currentUser?.role === 'teacher'
+  const [stats, setStats] = useState({ streak: 0, quizAvg: 0, done: 0 })
+
+  useEffect(() => {
+    if (!authUser?.id || isTeacher) return
+    const fetchStats = () => {
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = now.getMonth() + 1
+
+      Promise.all([
+        fetch(`/api/gamification/streak-calendar?student_id=${authUser.id}&year=${year}&month=${month}`).then(r => r.json()),
+        fetch(`/api/quiz/history?student_id=${authUser.id}`).then(r => r.json()),
+        fetch(`/api/gamification/stats?student_id=${authUser.id}`).then(r => r.json()),
+      ])
+        .then(([streakData, quizData, statsData]) => {
+          const quizAvg = quizData.attempts?.length
+            ? Math.round(quizData.attempts.reduce((sum: number, a: any) => sum + a.score, 0) / quizData.attempts.length)
+            : 0
+          setStats({
+            streak: streakData.currentStreak ?? 0,
+            quizAvg,
+            done: statsData.materialsDone ?? 0,
+          })
+        })
+        .catch(() => {})
+    }
+    fetchStats()
+    const interval = setInterval(fetchStats, 30000)
+    const onXpUpdate = () => fetchStats()
+    window.addEventListener('xp-updated', onXpUpdate)
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('xp-updated', onXpUpdate)
+    }
+  }, [authUser?.id, isTeacher])
 
   if (isTeacher) {
     return (
@@ -179,21 +215,21 @@ function QuickStats() {
           <div className="flex flex-col items-center gap-0.5 py-1">
             <div className="flex items-center gap-1">
               <Users className="w-3.5 h-3.5 text-teal-500" />
-              <span className="text-sm font-bold text-teal-600 dark:text-teal-400">156</span>
+              <span className="text-sm font-bold text-teal-600 dark:text-teal-400">--</span>
             </div>
             <span className="text-[9px] text-muted-foreground font-medium">Students</span>
           </div>
           <div className="flex flex-col items-center gap-0.5 py-1">
             <div className="flex items-center gap-1">
               <BookOpen className="w-3.5 h-3.5 text-emerald-500" />
-              <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">4</span>
+              <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">--</span>
             </div>
             <span className="text-[9px] text-muted-foreground font-medium">Courses</span>
           </div>
           <div className="flex flex-col items-center gap-0.5 py-1">
             <div className="flex items-center gap-1">
               <Star className="w-3.5 h-3.5 text-amber-500" />
-              <span className="text-sm font-bold text-amber-600 dark:text-amber-400">4.7</span>
+              <span className="text-sm font-bold text-amber-600 dark:text-amber-400">--</span>
             </div>
             <span className="text-[9px] text-muted-foreground font-medium">Rating</span>
           </div>
@@ -208,21 +244,21 @@ function QuickStats() {
         <div className="flex flex-col items-center gap-0.5 py-1">
           <div className="flex items-center gap-1">
             <Flame className="w-3.5 h-3.5 text-amber-500" />
-            <span className="text-sm font-bold text-amber-600 dark:text-amber-400">12</span>
+            <span className="text-sm font-bold text-amber-600 dark:text-amber-400">{stats.streak}</span>
           </div>
           <span className="text-[9px] text-muted-foreground font-medium">Day Streak</span>
         </div>
         <div className="flex flex-col items-center gap-0.5 py-1">
           <div className="flex items-center gap-1">
             <Target className="w-3.5 h-3.5 text-emerald-500" />
-            <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">78%</span>
+            <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{stats.quizAvg}%</span>
           </div>
           <span className="text-[9px] text-muted-foreground font-medium">Quiz Avg</span>
         </div>
         <div className="flex flex-col items-center gap-0.5 py-1">
           <div className="flex items-center gap-1">
             <BookOpen className="w-3.5 h-3.5 text-teal-500" />
-            <span className="text-sm font-bold text-teal-600 dark:text-teal-400">87</span>
+            <span className="text-sm font-bold text-teal-600 dark:text-teal-400">{stats.done}</span>
           </div>
           <span className="text-[9px] text-muted-foreground font-medium">Done</span>
         </div>
@@ -262,6 +298,24 @@ function SidebarContent({ onNavigate, showTooltips = false }: { onNavigate?: () 
     : navItems.filter(n => n.key !== 'teacher')
   const groups = [...new Set(filteredNavItems.map(n => n.group))]
 
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(() => {
+    const activeItem = navItems.find(n => n.key === activePage)
+    return activeItem ? [activeItem.group] : []
+  })
+
+  useEffect(() => {
+    const activeItem = navItems.find(n => n.key === activePage)
+    if (activeItem && !expandedGroups.includes(activeItem.group)) {
+      setExpandedGroups(prev => [...prev, activeItem.group])
+    }
+  }, [activePage])
+
+  const toggleGroup = (group: string) => {
+    setExpandedGroups(prev =>
+      prev.includes(group) ? prev.filter(g => g !== group) : [...prev, group]
+    )
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Brand Logo with Gradient */}
@@ -284,84 +338,108 @@ function SidebarContent({ onNavigate, showTooltips = false }: { onNavigate?: () 
 
       {/* Navigation */}
       <ScrollArea className="flex-1 min-h-0 px-3 py-3">
-        <div className="space-y-5">
-          {groups.map(group => (
-            <div key={group}>
-              <div className="flex items-center gap-2 px-2 mb-1.5">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  {group}
-                </p>
-                {aiToolGroups.includes(group) && (
-                  <Badge
-                    variant="outline"
-                    className="text-[8px] px-1.5 py-0 h-3.5 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+        <div className="space-y-1">
+          {groups.map(group => {
+            const isExpanded = expandedGroups.includes(group)
+            const groupItems = filteredNavItems.filter(n => n.group === group)
+
+            return (
+              <div key={group}>
+                <button
+                  onClick={() => toggleGroup(group)}
+                  className="w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-muted/60 transition-colors group/header"
+                >
+                  <motion.div
+                    animate={{ rotate: isExpanded ? 0 : -90 }}
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
                   >
-                    AI-Powered
-                  </Badge>
-                )}
+                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                  </motion.div>
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex-1 text-left">
+                    {group}
+                  </p>
+                  {aiToolGroups.includes(group) && (
+                    <Badge
+                      variant="outline"
+                      className="text-[8px] px-1.5 py-0 h-3.5 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                    >
+                      AI-Powered
+                    </Badge>
+                  )}
+                </button>
+                <AnimatePresence initial={false}>
+                  {isExpanded && (
+                    <motion.div
+                      key={`items-${group}`}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: 'easeInOut' }}
+                      className="overflow-hidden"
+                    >
+                      <div className="space-y-0.5 pb-1 pl-1">
+                        {groupItems.map(item => {
+                          const Icon = item.icon
+                          const isActive = activePage === item.key
+
+                          const button = (
+                            <Button
+                              key={item.key}
+                              variant="ghost"
+                              className={cn(
+                                'w-full justify-start gap-2.5 h-9 px-2.5 text-sm font-medium',
+                                'relative transition-all duration-200 ease-out',
+                                'hover:scale-[1.02] hover:bg-muted/80 active:scale-[0.98]',
+                                isActive
+                                  ? 'bg-primary/10 text-primary hover:bg-primary/15'
+                                  : 'text-muted-foreground hover:text-foreground',
+                              )}
+                              onClick={() => {
+                                setActivePage(item.key)
+                                onNavigate?.()
+                              }}
+                            >
+                              <motion.div
+                                className={cn(
+                                  'absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-gradient-to-b from-emerald-500 to-teal-500',
+                                )}
+                                initial={false}
+                                animate={{
+                                  height: isActive ? 20 : 0,
+                                  opacity: isActive ? 1 : 0,
+                                }}
+                                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                              />
+                              <Icon className={cn(
+                                'w-4 h-4 shrink-0 transition-colors duration-200',
+                                isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
+                              )} />
+                              <span className="truncate">{roleLabels[item.key] || item.label}</span>
+                            </Button>
+                          )
+
+                          if (showTooltips) {
+                            return (
+                              <Tooltip key={item.key}>
+                                <TooltipTrigger asChild>
+                                  {button}
+                                </TooltipTrigger>
+                                <TooltipContent side="right" sideOffset={8}>
+                                  <p>{roleLabels[item.key] || item.label}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )
+                          }
+
+                          return button
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              <div className="space-y-0.5">
-                {filteredNavItems
-                  .filter(n => n.group === group)
-                  .map(item => {
-                    const Icon = item.icon
-                    const isActive = activePage === item.key
-
-                    const button = (
-                      <Button
-                        key={item.key}
-                        variant="ghost"
-                        className={cn(
-                          'w-full justify-start gap-2.5 h-9 px-2.5 text-sm font-medium',
-                          'relative transition-all duration-200 ease-out',
-                          'hover:scale-[1.02] hover:bg-muted/80 active:scale-[0.98]',
-                          isActive
-                            ? 'bg-primary/10 text-primary hover:bg-primary/15'
-                            : 'text-muted-foreground hover:text-foreground',
-                        )}
-                        onClick={() => {
-                          setActivePage(item.key)
-                          onNavigate?.()
-                        }}
-                      >
-                        {/* Active indicator - left bar */}
-                        <motion.div
-                          className={cn(
-                            'absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-gradient-to-b from-emerald-500 to-teal-500',
-                          )}
-                          initial={false}
-                          animate={{
-                            height: isActive ? 20 : 0,
-                            opacity: isActive ? 1 : 0,
-                          }}
-                          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                        />
-                        <Icon className={cn(
-                          'w-4 h-4 shrink-0 transition-colors duration-200',
-                          isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
-                        )} />
-                        <span className="truncate">{roleLabels[item.key] || item.label}</span>
-                      </Button>
-                    )
-
-                    if (showTooltips) {
-                      return (
-                        <Tooltip key={item.key}>
-                          <TooltipTrigger asChild>
-                            {button}
-                          </TooltipTrigger>
-                          <TooltipContent side="right" sideOffset={8}>
-                            <p>{roleLabels[item.key] || item.label}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      )
-                    }
-
-                    return button
-                  })}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </ScrollArea>
 
@@ -782,6 +860,104 @@ const pageComponents: Record<PageKey, React.ComponentType> = {
   'grades': GradeTracker,
 }
 
+function BreakReminderModal() {
+  const { breakReminder, dismissBreakReminder, setActivePage } = useAppStore()
+
+  if (!breakReminder.show) return null
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className="bg-card border rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4"
+        >
+          <div className="mx-auto w-14 h-14 rounded-full bg-amber-500/15 flex items-center justify-center">
+            <motion.div
+              animate={{ rotate: [0, -10, 10, -10, 0] }}
+              transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 2 }}
+            >
+              <Timer className="w-7 h-7 text-amber-500" />
+            </motion.div>
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-lg font-semibold">Time for a break!</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Your brain has been focused for a while — it deserves a rest. Step away for <strong>15 minutes</strong> to recharge and come back sharper.
+            </p>
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Button variant="outline" size="sm" className="flex-1" onClick={dismissBreakReminder}>
+              Dismiss
+            </Button>
+            <Button
+              size="sm"
+              className="flex-1 bg-amber-500 hover:bg-amber-600 text-white"
+              onClick={() => {
+                dismissBreakReminder()
+                setActivePage('pomodoro')
+              }}
+            >
+              Take a Break
+            </Button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
+function ScreenTimeBadge() {
+  const authUser = useAuthStore((s) => s.user)
+  const [seconds, setSeconds] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!authUser?.id) return
+    const fetchTime = () => {
+      fetch(`/api/gamification/screen-time-today?student_id=${authUser.id}`)
+        .then((r) => r.json())
+        .then((data) => { if (typeof data.totalSeconds === 'number') setSeconds(data.totalSeconds) })
+        .catch(() => {})
+        .finally(() => setLoading(false))
+    }
+    fetchTime()
+    const interval = setInterval(fetchTime, 30000)
+    return () => clearInterval(interval)
+  }, [authUser?.id])
+
+  const hours = Math.floor(seconds / 3600)
+  const mins = Math.floor((seconds % 3600) / 60)
+  const display = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
+  const color = seconds < 7200 ? 'text-emerald-500' : seconds < 18000 ? 'text-amber-500' : 'text-rose-500'
+  const bg = seconds < 7200 ? 'bg-emerald-500/10 border-emerald-500/20' : seconds < 18000 ? 'bg-amber-500/10 border-amber-500/20' : 'bg-rose-500/10 border-rose-500/20'
+
+  if (loading) return <div className="h-7 w-14 sm:w-16 rounded-full bg-muted animate-pulse shrink-0" />
+
+  return (
+    <div className="relative group/screen">
+      <div className={`flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full border cursor-help ${bg} ${color} text-[10px] sm:text-[11px] font-semibold tabular-nums`}>
+        <Timer className="size-2.5 sm:size-3" />
+        {display}
+      </div>
+      <div className="absolute right-0 top-full mt-2 w-56 sm:w-64 p-3 rounded-xl border bg-popover text-popover-foreground text-xs shadow-lg opacity-0 group-hover/screen:opacity-100 transition-opacity pointer-events-none z-50">
+        <p className="font-medium mb-0.5">Focused Study Time</p>
+        <p className="text-muted-foreground leading-relaxed">
+          Only time spent actively on study pages (quiz, tutor, notes, wellbeing, etc.) with the tab in focus counts. Idle or non-study browsing is <strong>not</strong> included.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function Home() {
   const { activePage, sidebarOpen, setSidebarOpen, toggleSidebar, setActivePage, currentUser } = useAppStore()
   const { isAuthenticated, isLoading, hydrate } = useAuthStore()
@@ -795,6 +971,9 @@ export default function Home() {
   useEffect(() => {
     hydrate()
   }, [hydrate])
+
+  // Start telemetry tracking (must be before early returns)
+  useTelemetry()
 
   // Show loading spinner
   if (!mounted || isLoading) {
@@ -921,6 +1100,9 @@ export default function Home() {
             </Button>
             </>}
 
+            {/* Today's Screen Time */}
+            <ScreenTimeBadge />
+
             {/* Notification Bell with Dropdown */}
             <NotificationBell />
           </div>
@@ -958,6 +1140,9 @@ export default function Home() {
 
       {/* Onboarding Tour - hidden for teachers */}
       {!isTeacher && <OnboardingTour />}
+
+      {/* Study Break Reminder */}
+      <BreakReminderModal />
     </div>
   )
 }

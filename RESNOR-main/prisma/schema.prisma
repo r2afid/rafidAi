@@ -16,6 +16,8 @@ model User {
   passwordHash String?
   studentId    String?  // e.g. CSE-331
   institution  String?
+  phone        String?
+  semester     String?
   bio          String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -30,6 +32,8 @@ model User {
   engagementScore   EngagementScore?
   wellbeingCheckins WellbeingCheckin[]
   authSessions       AuthSession[]
+  progress           StudentProgress?
+  enrollments        Enrollment[]
 }
 
 model AuthSession {
@@ -51,7 +55,27 @@ model Course {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  topics Topic[]
+  topics      Topic[]
+  enrollments Enrollment[]
+}
+
+model Enrollment {
+  id               String   @id @default(cuid())
+  studentId        String
+  courseId         String
+  attendance       Float    @default(0)
+  assignmentMark   Float?
+  presentationMark Float?
+  midMark          Float?
+  finalMark        Float?
+  status           String   @default("enrolled")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  student User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course  Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId])
 }
 
 model Topic {
@@ -63,6 +87,7 @@ model Topic {
 
   course    Course     @relation(fields: [courseId], references: [id])
   materials Material[]
+  quizzes   Quiz[]
 }
 
 model Material {
@@ -102,6 +127,7 @@ model Quiz {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  topic     Topic          @relation(fields: [topicId], references: [id])
   questions QuizQuestion[]
   attempts  QuizAttempt[]
 }
@@ -186,7 +212,7 @@ model Streak {
 
 model Badge {
   id            String @id @default(cuid())
-  name          String
+  name          String @unique
   description   String
   icon          String // emoji or icon name
   category      String // study, quiz, streak, engagement
@@ -251,6 +277,18 @@ model EngagementScore {
   student User @relation(fields: [studentId], references: [id])
 }
 
+model StudentProgress {
+  id           String   @id @default(cuid())
+  studentId    String   @unique
+  xp           Int      @default(0)
+  level        Int      @default(1)
+  previousRank Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  student User @relation(fields: [studentId], references: [id])
+}
+
 model WellbeingCheckin {
   id          String   @id @default(cuid())
   studentId   String
@@ -273,4 +311,28 @@ model InterventionRecord {
   message     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model PomodoroSession {
+  id             String     @id @default(cuid())
+  studentId      String
+  type           String     // focus, shortBreak, longBreak
+  duration       Int        // planned duration in minutes
+  actualSeconds  Int        @default(0) // actual seconds completed
+  startedAt      DateTime
+  completedAt    DateTime
+  createdAt      DateTime   @default(now())
+
+  @@index([studentId, completedAt])
+}
+
+model PomodoroSettings {
+  id                  String   @id @default(cuid())
+  studentId           String   @unique
+  focusDuration       Int      @default(25)
+  shortBreakDuration  Int      @default(5)
+  longBreakDuration   Int      @default(15)
+  autoStart           Boolean  @default(false)
+  soundEnabled        Boolean  @default(true)
+  updatedAt           DateTime @updatedAt
 }

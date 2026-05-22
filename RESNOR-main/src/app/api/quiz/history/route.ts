@@ -22,7 +22,11 @@ export async function GET(request: Request) {
       },
     })
 
-    return NextResponse.json({ attempts })
+    const mapped = attempts.map(a => ({
+      ...a,
+      score: a.totalQuestions > 0 ? Math.round((a.correctCount / a.totalQuestions) * 100) : 0,
+    }))
+    return NextResponse.json({ attempts: mapped })
   } catch (error) {
     console.error('Quiz history error:', error)
     return NextResponse.json({ error: 'Failed to fetch quiz history' }, { status: 500 })
