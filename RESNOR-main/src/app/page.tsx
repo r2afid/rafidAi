@@ -333,7 +333,7 @@ function SidebarContent({ onNavigate, showTooltips = false }: { onNavigate?: () 
             <h1 className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
               RESNOR
             </h1>
-            <p className="text-[10px] text-muted-foreground leading-none font-medium">AI-Powered Growth — auto-deploy 🔥</p>
+            <p className="text-[10px] text-muted-foreground leading-none font-medium">AI-Powered Growth</p>
           </div>
         </div>
       </div>
