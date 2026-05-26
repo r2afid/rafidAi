@@ -324,7 +324,7 @@ export default function AITutor() {
         if (!res.ok) throw new Error(data.error)
         convId = data.conversation.id
         const newConv: Conversation = {
-          id: convId,
+          id: convId!,
           title: 'New Chat',
           messages: [],
           mode: activeMode,
@@ -881,11 +881,11 @@ export default function AITutor() {
     <div className="flex h-full min-h-0">
       <aside
         className={cn(
-          'hidden md:flex flex-col border-r bg-card/80 backdrop-blur-xl overflow-hidden shrink-0 transition-all duration-250 ease-out',
-          sidebarOpen ? 'w-64 lg:w-[280px] opacity-100' : 'w-0 opacity-0 border-r-0'
+          'hidden lg:flex flex-col border-r bg-card/80 backdrop-blur-xl overflow-hidden shrink-0 transition-all duration-250 ease-out',
+          sidebarOpen ? 'w-64 xl:w-[280px] opacity-100' : 'w-0 opacity-0 border-r-0'
         )}
       >
-        <div className={cn('w-64 lg:w-[280px] h-full', !sidebarOpen && 'pointer-events-none')}>
+        <div className={cn('w-64 xl:w-[280px] h-full', !sidebarOpen && 'pointer-events-none')}>
           <SidebarContent />
         </div>
       </aside>
@@ -919,7 +919,7 @@ export default function AITutor() {
                   }}
                 >
                   {sidebarOpen ? <PanelLeftClose className="size-3.5" /> : <PanelLeftOpen className="size-3.5" />}
-                  <span className="hidden lg:inline">Sidebar</span>
+                  <span className="hidden xl:inline">Sidebar</span>
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" sideOffset={4}>
@@ -927,7 +927,7 @@ export default function AITutor() {
               </TooltipContent>
             </Tooltip>
 
-            <Separator orientation="vertical" className="h-5 shrink-0" />
+            <Separator orientation="vertical" className="h-4 sm:h-5 shrink-0" />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -997,11 +997,11 @@ export default function AITutor() {
             )}
 
             <div className={cn(
-              'shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium',
+              'shrink-0 flex items-center gap-1.5 px-1 sm:px-2 py-1 rounded-full text-[10px] font-medium',
               isTyping ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
             )}>
               <span className={cn('size-1.5 rounded-full', isTyping ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500')} />
-              <span>{isTyping ? 'Thinking' : 'Online'}</span>
+              <span className="hidden sm:inline">{isTyping ? 'Thinking' : 'Online'}</span>
             </div>
           </div>
         </div>
@@ -1027,7 +1027,7 @@ export default function AITutor() {
                 </p>
 
                 <div className="w-full max-w-lg mb-4 sm:mb-6">
-                  <div className="flex sm:grid sm:grid-cols-4 gap-2 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
+                  <div className="grid grid-cols-4 sm:grid-cols-4 gap-1.5 sm:gap-2">
                     {MODES.map((mode) => {
                       const Icon = mode.icon
                       return (
@@ -1035,12 +1035,12 @@ export default function AITutor() {
                           key={mode.key}
                           onClick={() => handleModeChange(mode.key)}
                           className={cn(
-                            'flex flex-col items-center gap-1.5 rounded-xl border p-2.5 sm:p-3 transition-all shrink-0 sm:shrink hover:shadow-md bg-card w-[90px] sm:w-auto',
+                            'flex flex-col items-center gap-1 rounded-lg sm:rounded-xl border p-1.5 sm:p-3 transition-all hover:shadow-md bg-card',
                             activeMode === mode.key && 'border-emerald-500/30 bg-emerald-500/5'
                           )}
                         >
-                          <Icon className={cn('size-4 sm:size-5', mode.color)} />
-                          <span className="text-[10px] sm:text-[11px] font-medium whitespace-nowrap">{mode.label}</span>
+                          <Icon className={cn('size-3.5 sm:size-5', mode.color)} />
+                          <span className="text-[9px] sm:text-[11px] font-medium truncate w-full text-center">{mode.label}</span>
                         </button>
                       )
                     })}
@@ -1104,7 +1104,7 @@ export default function AITutor() {
                     </div>
                   )}
 
-                  <div className="relative max-w-[85%]">
+                  <div className="relative max-w-[90%] sm:max-w-[85%] md:max-w-[80%]">
                     <div
                       className={cn(
                         'rounded-2xl px-4 py-3 text-sm leading-relaxed',
@@ -1196,10 +1196,10 @@ export default function AITutor() {
               >
                 <button
                   onClick={handleRetry}
-                  className="flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-xs text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/40 transition-all shadow-sm"
+                  className="flex items-center gap-1.5 rounded-full border bg-card px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/40 transition-all shadow-sm"
                 >
-                  <RefreshCw className="size-3.5" />
-                  Retry last message
+                  <RefreshCw className="size-3 sm:size-3.5" />
+                  <span>Retry</span>
                 </button>
               </motion.div>
             )}
@@ -1208,26 +1208,15 @@ export default function AITutor() {
               <div className="pt-1 pb-2">
                 <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
                   <Sparkles className="size-3 shrink-0 text-muted-foreground" />
-                  {suggestions.slice(0, 3).map((q) => (
+                  {suggestions.slice(0, 4).map((q) => (
                     <button
                       key={q}
                       onClick={() => handleSendMessage(q)}
-                      className="shrink-0 rounded-full border bg-background px-3 py-1 text-[11px] text-muted-foreground transition-all hover:border-emerald-500/40 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/5"
+                      className="shrink-0 rounded-full border bg-background px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] text-muted-foreground transition-all whitespace-nowrap hover:border-emerald-500/40 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/5"
                     >
                       {q}
                     </button>
                   ))}
-                  <div className="flex items-center gap-0.5 shrink-0">
-                    {suggestions.slice(3, 5).map((q) => (
-                      <button
-                        key={q}
-                        onClick={() => handleSendMessage(q)}
-                        className="rounded-full border bg-background px-3 py-1 text-[11px] text-muted-foreground transition-all hover:border-emerald-500/40 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/5"
-                      >
-                        {q}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               </div>
             )}
