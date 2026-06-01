@@ -803,7 +803,8 @@ export default function EngagementTracker() {
       setLoading(false);
       return;
     }
-    fetch(`/api/engagement/screen-time?student_id=${user.id}`)
+    const tz = -new Date().getTimezoneOffset()
+    fetch(`/api/engagement/screen-time?student_id=${user.id}&tz=${tz}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((json) => {
         setData(json);

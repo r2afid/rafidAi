@@ -34,7 +34,9 @@ export async function GET(request: Request) {
     if (!studentId) return NextResponse.json({ error: 'student_id is required' }, { status: 400 })
 
     const now = new Date()
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const tzOffset = parseInt(searchParams.get('tz') || '0')
+    const localNow = new Date(now.getTime() + tzOffset * 60000)
+    const todayStart = new Date(new Date(localNow.getFullYear(), localNow.getMonth(), localNow.getDate()).getTime() - tzOffset * 60000)
     const sevenDaysAgo = new Date(todayStart.getTime() - 6 * 86400000)
 
     const records = await db.telemetryRecord.findMany({
