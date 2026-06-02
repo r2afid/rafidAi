@@ -259,9 +259,9 @@ export default function BurnoutPredictor() {
               {['1','2','3','4','5'].map((val) => (
                 <button
                   key={val}
-                  onClick={() => setEnergyLevel(Number(val))}
+                  onClick={() => setSelectedEnergy(Number(val))}
                   className={`p-2 rounded-lg text-center text-sm font-medium transition-all ${
-                    energyLevel === Number(val)
+                    selectedEnergy === Number(val)
                       ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-600 dark:text-emerald-400 border-2'
                       : 'bg-muted border border-transparent text-muted-foreground hover:bg-muted/80'
                   }`}
@@ -295,9 +295,9 @@ export default function BurnoutPredictor() {
               {['1','2','3','4','5'].map((val) => (
                 <button
                   key={val}
-                  onClick={() => setStressLevel(Number(val))}
+                  onClick={() => setSelectedStress(Number(val))}
                   className={`p-2 rounded-lg text-center text-sm font-medium transition-all ${
-                    stressLevel === Number(val)
+                    selectedStress === Number(val)
                       ? 'bg-rose-500/20 border-rose-500/50 text-rose-600 dark:text-rose-400 border-2'
                       : 'bg-muted border border-transparent text-muted-foreground hover:bg-muted/80'
                   }`}
