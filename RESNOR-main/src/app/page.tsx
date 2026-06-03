@@ -57,6 +57,7 @@ import PeerLeaderboard from '@/components/leaderboard/PeerLeaderboard'
 import StudyNotes from '@/components/notes/StudyNotes'
 import CourseCatalog from '@/components/courses/CourseCatalog'
 import StudyPlanner from '@/components/planner/StudyPlanner'
+import DeathWeekPlanner from '@/components/death-week-planner/DeathWeekPlanner'
 import ProfileSettings from '@/components/profile/ProfileSettings'
 import TeacherProfileSettings from '@/components/profile/TeacherProfileSettings'
 import DiscussionForum from '@/components/forum/DiscussionForum'
@@ -85,6 +86,7 @@ const navItems: { key: PageKey; label: string; icon: React.ElementType; group: s
   { key: 'notes', label: 'Study Notes', icon: StickyNote, group: 'Tools' },
   { key: 'courses', label: 'Course Catalog', icon: Library, group: 'Learning' },
   { key: 'planner', label: 'Study Planner', icon: CalendarDays, group: 'Tools' },
+  { key: 'death-week-planner', label: 'Death Week Planner', icon: Flame, group: 'Tools' },
   { key: 'profile', label: 'Profile & Settings', icon: UserCircle, group: 'Account' },
   { key: 'forum', label: 'Discussion Forum', icon: MessageSquare, group: 'Community' },
   { key: 'resources', label: 'Resource Library', icon: FolderOpen, group: 'Learning' },
@@ -109,6 +111,7 @@ const pageLabels = (isTeacher: boolean): Record<PageKey, string> => ({
   'notes': 'Study Notes',
   'courses': 'Course Catalog',
   'planner': 'Study Planner',
+  'death-week-planner': 'Death Week Planner',
   'profile': isTeacher ? 'Teacher Profile' : 'Profile & Settings',
   'forum': 'Discussion Forum',
   'resources': 'Resource Library',
@@ -600,6 +603,7 @@ function MobileTabBar() {
     { key: 'forum', label: 'Forum', icon: MessageSquare },
     { key: 'resources', label: 'Library', icon: FolderOpen },
     { key: 'grades', label: 'Grades', icon: GraduationCap },
+    { key: 'death-week-planner', label: 'Death Week', icon: Flame },
     { key: 'profile', label: 'Profile', icon: UserCircle },
     { key: 'notifications', label: 'Alerts', icon: Bell },
     { key: 'peer-comparison', label: 'Predictor', icon: Users },
@@ -869,6 +873,7 @@ const pageComponents: Record<PageKey, React.ComponentType> = {
   'notes': StudyNotes,
   'courses': CourseCatalog,
   'planner': StudyPlanner,
+  'death-week-planner': DeathWeekPlanner,
   'profile': ProfileSettings,
   'forum': DiscussionForum,
   'resources': ResourceLibrary,
@@ -1135,7 +1140,7 @@ export default function Home() {
                 exit={{ opacity: 0, y: -8, filter: 'blur(2px)' }}
                 transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className={cn(
-                  resolvedPage === 'tutor' ? 'h-full overflow-hidden p-0' : 'p-4 md:p-6 pb-20 md:pb-6',
+                  resolvedPage === 'tutor' ? 'h-full overflow-hidden p-0' : 'h-full p-4 md:p-6 pb-20 md:pb-6',
                   'max-w-[1600px] mx-auto'
                 )}
               >

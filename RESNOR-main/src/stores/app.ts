@@ -23,6 +23,7 @@ export type PageKey =
   | 'grades'
   | 'exam-routine'
   | 'peer-comparison'
+  | 'death-week-planner'
 
 interface AppState {
   activePage: PageKey

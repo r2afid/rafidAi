@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -54,6 +53,7 @@ model User {
   studyGroupMembers  StudyGroupMember[]
   resources         Resource[]
   wellbeingAnalytics WellbeingAnalytics?
+  deathWeekPlans    DeathWeekPlan[]
 }
 
 model AuthSession {
@@ -747,4 +747,20 @@ model StudyGroupMember {
   student User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, studentId])
+}
+
+model DeathWeekPlan {
+  id          String   @id @default(cuid())
+  userId      String
+  weekName    String
+  startDate   DateTime
+  endDate     DateTime
+  subjects    String?  // JSON array of tasks
+  schedule    String?  // JSON (trigger type)
+  goals       String?  // JSON array of goals
+  progress    Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

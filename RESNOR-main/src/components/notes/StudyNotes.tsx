@@ -54,14 +54,14 @@ interface StudyNote {
 // --- Category Config ---
 
 const CATEGORY_COLORS = [
-  { dotClass: 'bg-emerald-500', glowClass: 'shadow-emerald-500/20', borderClass: 'border-emerald-500/30', badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800', pillClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800' },
-  { dotClass: 'bg-sky-500', glowClass: 'shadow-sky-500/20', borderClass: 'border-sky-500/30', badgeClass: 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border-sky-200 dark:border-sky-800', pillClass: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800' },
-  { dotClass: 'bg-violet-500', glowClass: 'shadow-violet-500/20', borderClass: 'border-violet-500/30', badgeClass: 'bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300 border-violet-200 dark:border-violet-800', pillClass: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-800' },
-  { dotClass: 'bg-amber-500', glowClass: 'shadow-amber-500/20', borderClass: 'border-amber-500/30', badgeClass: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800', pillClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800' },
-  { dotClass: 'bg-rose-500', glowClass: 'shadow-rose-500/20', borderClass: 'border-rose-500/30', badgeClass: 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border-rose-200 dark:border-rose-800', pillClass: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800' },
-  { dotClass: 'bg-teal-500', glowClass: 'shadow-teal-500/20', borderClass: 'border-teal-500/30', badgeClass: 'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300 border-teal-200 dark:border-teal-800', pillClass: 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800' },
-  { dotClass: 'bg-orange-500', glowClass: 'shadow-orange-500/20', borderClass: 'border-orange-500/30', badgeClass: 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300 border-orange-200 dark:border-orange-800', pillClass: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800' },
-  { dotClass: 'bg-pink-500', glowClass: 'shadow-pink-500/20', borderClass: 'border-pink-500/30', badgeClass: 'bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300 border-pink-200 dark:border-pink-800', pillClass: 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-950/40 dark:text-pink-300 dark:border-pink-800' },
+  { dotClass: 'bg-emerald-500', hex: '#10b981', glowClass: 'shadow-emerald-500/20', borderClass: 'border-emerald-500/30', badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800', pillClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800' },
+  { dotClass: 'bg-sky-500', hex: '#0ea5e9', glowClass: 'shadow-sky-500/20', borderClass: 'border-sky-500/30', badgeClass: 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border-sky-200 dark:border-sky-800', pillClass: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800' },
+  { dotClass: 'bg-violet-500', hex: '#8b5cf6', glowClass: 'shadow-violet-500/20', borderClass: 'border-violet-500/30', badgeClass: 'bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300 border-violet-200 dark:border-violet-800', pillClass: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-800' },
+  { dotClass: 'bg-amber-500', hex: '#f59e0b', glowClass: 'shadow-amber-500/20', borderClass: 'border-amber-500/30', badgeClass: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800', pillClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800' },
+  { dotClass: 'bg-rose-500', hex: '#f43f5e', glowClass: 'shadow-rose-500/20', borderClass: 'border-rose-500/30', badgeClass: 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border-rose-200 dark:border-rose-800', pillClass: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800' },
+  { dotClass: 'bg-teal-500', hex: '#14b8a6', glowClass: 'shadow-teal-500/20', borderClass: 'border-teal-500/30', badgeClass: 'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300 border-teal-200 dark:border-teal-800', pillClass: 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800' },
+  { dotClass: 'bg-orange-500', hex: '#f97316', glowClass: 'shadow-orange-500/20', borderClass: 'border-orange-500/30', badgeClass: 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300 border-orange-200 dark:border-orange-800', pillClass: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800' },
+  { dotClass: 'bg-pink-500', hex: '#ec4899', glowClass: 'shadow-pink-500/20', borderClass: 'border-pink-500/30', badgeClass: 'bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300 border-pink-200 dark:border-pink-800', pillClass: 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-950/40 dark:text-pink-300 dark:border-pink-800' },
 ]
 
 function getCategoryConfig(category: string, index?: number) {
@@ -154,11 +154,12 @@ function NoteCard({
       onClick={onClick}
       className={`w-full rounded-xl border text-left transition-all duration-200 cursor-pointer overflow-hidden group ${
         isActive
-          ? `bg-gradient-to-r from-white via-white to-${config.dotClass.replace('bg-', '')}/5 dark:from-zinc-900 dark:via-zinc-900 shadow-md ${config.borderClass}`
+          ? 'bg-gradient-to-r from-white via-white dark:from-zinc-900 dark:via-zinc-900 shadow-md border-current/30'
           : 'bg-card/40 hover:bg-card/80 border-border/50 hover:border-border/80 hover:shadow-sm'
       }`}
+      style={isActive ? { '--tw-gradient-to': `${config.hex}0d`, borderColor: `${config.hex}4d` } as React.CSSProperties : undefined}
     >
-      <div className={`relative p-3 ${isActive ? `border-l-[3px] ${config.borderClass.replace('border-', 'border-l-')}` : ''}`}>
+      <div className={`relative p-3 ${isActive ? 'border-l-[3px] border-current/30' : ''}`} style={isActive ? { borderLeftColor: `${config.hex}4d` } as React.CSSProperties : undefined}>
         {/* Category color dot indicator */}
         <div className={`absolute top-3 right-3 h-2 w-2 rounded-full ${config.dotClass} ${isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-70'} transition-opacity`} />
 
@@ -174,7 +175,7 @@ function NoteCard({
 
         <div className="flex items-start gap-2.5">
           <div className={`mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg border ${config.borderClass} bg-background/80 shadow-sm`}>
-            <StickyNote className={`h-3.5 w-3.5 ${config.dotClass.replace('bg-', 'text-')}`} />
+            <StickyNote className="h-3.5 w-3.5" style={{ color: config.hex }} />
           </div>
           <div className="min-w-0 flex-1">
             <h3 className={`text-sm font-semibold leading-snug line-clamp-1 ${isActive ? 'text-foreground' : 'text-foreground/90'}`}>
@@ -335,10 +336,11 @@ function NotesListSidebar({
                 className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-all border cursor-pointer ${
                   isActive
                     ? isNoteCat
-                      ? `${ccfg!.pillClass} shadow-sm border-current/30 shadow-${ccfg!.dotClass.replace('bg-', '')}/10`
+                      ? `${ccfg!.pillClass} shadow-sm border-current/30`
                       : "bg-foreground text-background border-foreground shadow-sm"
                     : "bg-muted/40 text-muted-foreground/70 border-border/30 hover:bg-muted/70 hover:text-foreground/80"
                 }`}
+                style={isActive && isNoteCat ? { boxShadow: `0 1px 3px 0 ${ccfg!.hex}1a` } as React.CSSProperties : undefined}
               >
                 {isNoteCat && (
                   <span
@@ -457,7 +459,7 @@ function NoteEditor({
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [tagInput, setTagInput] = useState("");
-  const [preview, setPreview] = useState(true);
+  const [preview, setPreview] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const config = getCategoryConfig(note.category);
@@ -868,7 +870,8 @@ function NoteEditor({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.45, duration: 0.3 }}
-        className={`border-t border-border/30 px-3 sm:px-5 py-2 flex items-center justify-between bg-background/60 backdrop-blur-sm ${config.borderClass.replace('border-', 'border-t-')}`}
+        className="border-t border-border/30 px-3 sm:px-5 py-2 flex items-center justify-between bg-background/60 backdrop-blur-sm"
+        style={{ borderTopColor: `${config.hex}4d` } as React.CSSProperties}
       >
         <span className="text-[10px] text-muted-foreground/50 flex items-center gap-2">
           <span>{charCount} character{charCount !== 1 ? 's' : ''}</span>
@@ -916,13 +919,13 @@ function EmptySelectState() {
   const [writingPhase, setWritingPhase] = useState(0)
 
   useEffect(() => {
-    const t1 = setTimeout(() => setWritingPhase(1), 800)
-    const t2 = setTimeout(() => setWritingPhase(2), 1800)
-    const t3 = setTimeout(() => setWritingPhase(3), 2800)
-    const t4 = setTimeout(() => setWritingPhase(4), 3800)
-    const loop = setTimeout(() => setWritingPhase(0), 5000)
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(loop) }
-  }, [writingPhase === 0])
+    if (writingPhase >= 4) {
+      const reset = setTimeout(() => setWritingPhase(0), 1200)
+      return () => clearTimeout(reset)
+    }
+    const advance = setTimeout(() => setWritingPhase(p => p + 1), 800)
+    return () => clearTimeout(advance)
+  }, [writingPhase])
 
   return (
     <motion.div
@@ -1325,18 +1328,6 @@ export default function StudyNotes() {
     }, 2000);
   }, []);
 
-  // Keyboard shortcut: Ctrl+N to create new note
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-        e.preventDefault();
-        handleNewNote();
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  });
-
   // Fetch notes from API
   useEffect(() => {
     if (!user?.id) { setLoading(false); return; }
@@ -1526,6 +1517,18 @@ export default function StudyNotes() {
     setPendingTempId(tempId);
     setMobileTab("editor");
   }, [categoryFilter, user?.id, categories]);
+
+  // Keyboard shortcut: Ctrl+N to create new note
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        handleNewNote();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleNewNote]);
 
   // Filtered notes
   const filteredNotes = useMemo(() => {
@@ -1764,18 +1767,14 @@ export default function StudyNotes() {
                 isNew={isNewNote}
                 categories={categories}
               />
-            ) : null}
+            ) : (
+              <div className="flex-1 flex items-center justify-center min-h-[300px]">
+                <EmptySelectState />
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
-        {/* Full-screen empty state on mobile when no note selected */}
-        {mobileTab === 'editor' && !selectedId && (
-          <div className="fixed inset-0 -z-10 pointer-events-none lg:hidden flex flex-col pt-20">
-            <div className="flex-1 flex items-center justify-center">
-              <EmptySelectState />
-            </div>
-          </div>
-        )}
       </div>
     </motion.div>
   );
