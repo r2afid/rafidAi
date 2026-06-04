@@ -110,16 +110,19 @@ function Sparkline({ data, color = 'currentColor', width = 48, height = 24 }: {
 }
 
 // ── Section Header ──
-function SectionHeader({ icon: Icon, title, accentColor = 'border-l-emerald-500', iconColor = 'text-emerald-600 dark:text-emerald-400' }: {
-  icon: React.ComponentType<{ className?: string }>; title: string; accentColor?: string; iconColor?: string
+function SectionHeader({ icon: Icon, title, subtitle, accentColor = 'border-l-emerald-500', iconColor = 'text-emerald-600 dark:text-emerald-400' }: {
+  icon: React.ComponentType<{ className?: string }>; title: string; subtitle?: string; accentColor?: string; iconColor?: string
 }) {
   return (
-    <div className="flex items-center gap-2.5 py-1">
-      <div className={cn('flex h-7 w-7 items-center justify-center rounded-md bg-muted/80', iconColor)}>
-        <Icon className="h-3.5 w-3.5" />
+    <div className="flex items-stretch gap-3 py-1">
+      <div className={cn('flex h-9 w-9 items-center justify-center rounded-lg bg-muted/70', iconColor)}>
+        <Icon className="h-4 w-4" />
       </div>
-      <div className={cn('h-5 w-[3px] rounded-full', accentColor)} />
-      <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
+      <div className={cn('w-[3px] rounded-full shrink-0', accentColor)} />
+      <div>
+        <h3 className="text-base font-bold tracking-tight">{title}</h3>
+        {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+      </div>
     </div>
   )
 }
@@ -755,31 +758,30 @@ export default function GrowthDashboard() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Welcome Banner */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
         <WelcomeBanner name={authUser?.name || 'Student'} materialsToday={data.materialsToday || 0} bestQuiz={`${bestQuiz}%`} streak={streak.current} level={data.progress?.level} xp={data.progress?.xp} />
       </motion.div>
 
       {/* This Week's Goals */}
-      <WeeklyGoalsSection goals={goals} goalsLoading={goalsLoading} xpReward={xpReward} xpAwarded={xpAwarded} onRegenerate={handleRegenerateGoals} />
+      <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
+        <WeeklyGoalsSection goals={goals} goalsLoading={goalsLoading} xpReward={xpReward} xpAwarded={xpAwarded} onRegenerate={handleRegenerateGoals} />
+      </motion.div>
 
       {/* Section: Performance Overview */}
-      <div className="flex items-center gap-2">
-        <SectionHeader icon={BarChart3} title="Performance Overview" 
+      <div className="space-y-4">
+        <SectionHeader icon={BarChart3} title="Performance Overview" subtitle="Your learning metrics at a glance"
 accentColor="border-l-emerald-500" iconColor="text-emerald-600 dark:text-emerald-400" />
-        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-orange-50 dark:bg-orange-950/30 border border-orange-200/50 dark:border-orange-800/30">
-          <Sparkles className="h-3 w-3 text-orange-500" />
-          <span className="text-[9px] font-semibold text-orange-600 dark:text-orange-400 tracking-wide">AI</span>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {statCards.map((card) => <StatCard key={card.title} {...card} />)}
         </div>
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((card) => <StatCard key={card.title} {...card} />)}
       </div>
 
       {/* Section: Learning Analytics */}
-      <SectionHeader icon={TrendingUp} title="Learning Analytics" accentColor="border-l-teal-500" iconColor="text-teal-600 dark:text-teal-400" />
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-4">
+        <SectionHeader icon={TrendingUp} title="Learning Analytics" subtitle="Deep dive into your study patterns" accentColor="border-l-teal-500" iconColor="text-teal-600 dark:text-teal-400" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 auto-rows-fr">
         {/* Material Progress Donut */}
         <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
           <Card className="h-full transition-shadow duration-300 hover:shadow-md">
@@ -805,25 +807,30 @@ accentColor="border-l-emerald-500" iconColor="text-emerald-600 dark:text-emerald
               {mp.total > 0 ? (
                 <>
                   <div className="relative">
-                    <ChartContainer config={{ completed: { label: 'Completed', color: 'oklch(0.646 0.222 41.116)' }, inProgress: { label: 'In Progress', color: 'oklch(0.769 0.188 70.08)' }, pending: { label: 'Pending', color: 'oklch(0.828 0.189 84.429)' } }} className="mx-auto aspect-square max-h-[250px]">
+                    <ChartContainer config={{ completed: { label: 'Completed', color: 'oklch(0.646 0.222 41.116)' }, inProgress: { label: 'In Progress', color: 'oklch(0.769 0.188 70.08)' }, pending: { label: 'Pending', color: 'oklch(0.8 0.08 240)' } }} className="mx-auto aspect-square max-h-[250px]">
                       <PieChart>
+                        <defs>
+                          <linearGradient id="donutCompleted" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="oklch(0.646 0.222 41.116)" /><stop offset="100%" stopColor="oklch(0.6 0.12 160)" /></linearGradient>
+                          <linearGradient id="donutInProgress" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="oklch(0.769 0.188 70.08)" /><stop offset="100%" stopColor="oklch(0.7 0.15 50)" /></linearGradient>
+                          <linearGradient id="donutPending" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="oklch(0.8 0.08 240)" /><stop offset="100%" stopColor="oklch(0.7 0.1 260)" /></linearGradient>
+                        </defs>
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Pie data={[
-                          { name: 'Completed', value: mp.done, fill: 'oklch(0.646 0.222 41.116)' },
-                          { name: 'In Progress', value: mp.inProgress, fill: 'oklch(0.769 0.188 70.08)' },
-                          { name: 'Pending', value: mp.pending, fill: 'oklch(0.828 0.189 84.429)' },
-                        ]} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} strokeWidth={2} stroke="oklch(1 0 0)">
-                          {[0, 1, 2].map((i) => <Cell key={i} fill={['oklch(0.646 0.222 41.116)', 'oklch(0.769 0.188 70.08)', 'oklch(0.828 0.189 84.429)'][i]} />)}
+                          { name: 'Completed', value: mp.done, fill: 'url(#donutCompleted)' },
+                          { name: 'In Progress', value: mp.inProgress, fill: 'url(#donutInProgress)' },
+                          { name: 'Pending', value: mp.pending, fill: 'url(#donutPending)' },
+                        ]} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={58} outerRadius={92} strokeWidth={3} stroke="var(--background)" paddingAngle={3}>
+                          {[0, 1, 2].map((i) => <Cell key={i} fill={['url(#donutCompleted)', 'url(#donutInProgress)', 'url(#donutPending)'][i]} />)}
                         </Pie>
                         <ChartLegend content={<ChartLegendContent nameKey="name" />} />
                       </PieChart>
                     </ChartContainer>
                     <DonutCenterLabel percentage={completionPct} />
                   </div>
-                  <div className="mt-3 flex justify-center gap-4 text-sm">
-                    <div className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5" style={{ color: 'oklch(0.646 0.222 41.116)' }} /><span className="text-muted-foreground">{mp.done} completed</span></div>
-                    <div className="flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5" style={{ color: 'oklch(0.769 0.188 70.08)' }} /><span className="text-muted-foreground">{mp.inProgress} in progress</span></div>
-                    <div className="flex items-center gap-1.5"><Circle className="h-3.5 w-3.5" style={{ color: 'oklch(0.828 0.189 84.429)' }} /><span className="text-muted-foreground">{mp.pending} pending</span></div>
+                  <div className="mt-3 flex justify-center gap-5 text-sm">
+                    <div className="flex items-center gap-1.5"><div className="h-2.5 w-2.5 rounded-sm" style={{ background: 'oklch(0.646 0.222 41.116)' }} /><span className="text-muted-foreground">{mp.done} <span className="hidden sm:inline">completed</span></span></div>
+                    <div className="flex items-center gap-1.5"><div className="h-2.5 w-2.5 rounded-sm" style={{ background: 'oklch(0.769 0.188 70.08)' }} /><span className="text-muted-foreground">{mp.inProgress} <span className="hidden sm:inline">in progress</span></span></div>
+                    <div className="flex items-center gap-1.5"><div className="h-2.5 w-2.5 rounded-sm" style={{ background: 'oklch(0.8 0.08 240)' }} /><span className="text-muted-foreground">{mp.pending} <span className="hidden sm:inline">pending</span></span></div>
                   </div>
                 </>
               ) : (
@@ -859,7 +866,7 @@ accentColor="border-l-emerald-500" iconColor="text-emerald-600 dark:text-emerald
                         useAppStore.getState().setPreselectedQuizTitle(selectedQuiz)
                         useAppStore.getState().setActivePage('explain-mistake')
                       }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200/50 dark:border-rose-800/30 text-rose-700 dark:text-rose-300 text-xs font-semibold hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors shrink-0"
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-rose-50 to-rose-100/80 dark:from-rose-950/40 dark:to-rose-900/30 border border-rose-200/50 dark:border-rose-800/30 text-rose-700 dark:text-rose-300 text-xs font-semibold hover:from-rose-100 hover:to-rose-200/80 dark:hover:from-rose-900/50 dark:hover:to-rose-800/40 hover:shadow-sm transition-all duration-200 shrink-0"
                     >
                       <SearchIcon className="h-3.5 w-3.5" />
                       Review My Mistake
@@ -937,16 +944,16 @@ accentColor="border-l-emerald-500" iconColor="text-emerald-600 dark:text-emerald
                     return (
                       <div className="grid grid-cols-3 gap-3 mb-5">
                         {[
-                          { label: 'Correct', value: totalCorrect, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-200/50 dark:border-emerald-800/30', dot: 'bg-emerald-500' },
-                          { label: 'Incorrect', value: totalQuestions - totalCorrect, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-950/30', border: 'border-rose-200/50 dark:border-rose-800/30', dot: 'bg-rose-500' },
-                          { label: 'Total Questions', value: totalQuestions, color: 'text-sky-600 dark:text-sky-400', bg: 'bg-sky-50 dark:bg-sky-950/30', border: 'border-sky-200/50 dark:border-sky-800/30', dot: 'bg-sky-500' },
+                          { label: 'Correct', value: totalCorrect, color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-gradient-to-br from-emerald-50 to-emerald-100/60 dark:from-emerald-950/40 dark:to-emerald-900/30', border: 'border-emerald-200/50 dark:border-emerald-800/30', accent: 'bg-emerald-500' },
+                          { label: 'Incorrect', value: totalQuestions - totalCorrect, color: 'text-rose-700 dark:text-rose-300', bg: 'bg-gradient-to-br from-rose-50 to-rose-100/60 dark:from-rose-950/40 dark:to-rose-900/30', border: 'border-rose-200/50 dark:border-rose-800/30', accent: 'bg-rose-500' },
+                          { label: 'Total Questions', value: totalQuestions, color: 'text-sky-700 dark:text-sky-300', bg: 'bg-gradient-to-br from-sky-50 to-sky-100/60 dark:from-sky-950/40 dark:to-sky-900/30', border: 'border-sky-200/50 dark:border-sky-800/30', accent: 'bg-sky-500' },
                         ].map(stat => (
-                          <div key={stat.label} className={cn("rounded-xl border p-3", stat.bg, stat.border)}>
+                          <div key={stat.label} className={cn("rounded-xl border p-3 transition-all hover:shadow-sm", stat.bg, stat.border)}>
                             <div className="flex items-center gap-2 mb-1">
-                              <div className={cn("h-2 w-2 rounded-full", stat.dot)} />
+                              <div className={cn("h-1.5 w-1.5 rounded-full ring-2 ring-offset-1", stat.accent)} />
                               <span className="text-xs text-muted-foreground">{stat.label}</span>
                             </div>
-                            <p className={cn("text-xl font-bold tabular-nums", stat.color)}>{stat.value}</p>
+                            <p className={cn("text-2xl font-bold tabular-nums", stat.color)}>{stat.value}</p>
                           </div>
                         ))}
                       </div>
@@ -963,21 +970,25 @@ accentColor="border-l-emerald-500" iconColor="text-emerald-600 dark:text-emerald
                       data={allAttempts
                         .filter((a: any) => a.quizTitle === selectedQuiz)
                         .map((a: any, i: number) => ({
-                          attempt: `#${i + 1}`,
+                          attempt: `Attempt ${i + 1}`,
                           correct: a.correctCount,
                           incorrect: a.totalQuestions - a.correctCount,
                         }))}
                       margin={{ left: -20, right: 10, top: 5 }}
-                      barCategoryGap="20%"
+                      barCategoryGap="25%"
                     >
+                      <defs>
+                        <linearGradient id="correctGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="oklch(0.6 0.18 145)" stopOpacity={0.95} /><stop offset="100%" stopColor="oklch(0.55 0.15 160)" stopOpacity={0.4} /></linearGradient>
+                        <linearGradient id="incorrectGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="oklch(0.6 0.2 25)" stopOpacity={0.95} /><stop offset="100%" stopColor="oklch(0.55 0.18 20)" stopOpacity={0.4} /></linearGradient>
+                      </defs>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="oklch(0.9 0 0)" />
                       <XAxis
                         dataKey="attempt"
                         tickLine={false}
                         axisLine={false}
-                        tick={{ fontSize: 12, fill: 'oklch(0.6 0 0)' }}
+                        tick={{ fontSize: 11, fill: 'oklch(0.6 0 0)' }}
                       />
-                      <YAxis tickLine={false} axisLine={false} allowDecimals={false} tick={{ fontSize: 12, fill: 'oklch(0.6 0 0)' }} />
+                      <YAxis tickLine={false} axisLine={false} allowDecimals={false} tick={{ fontSize: 11, fill: 'oklch(0.6 0 0)' }} />
                       <ChartTooltip
                         content={<ChartTooltipContent
                           formatter={(value: number, name: string) => (
@@ -993,16 +1004,16 @@ accentColor="border-l-emerald-500" iconColor="text-emerald-600 dark:text-emerald
                       />
                       <Bar
                         dataKey="correct"
-                        fill="oklch(0.6 0.18 145)"
+                        fill="url(#correctGrad)"
                         radius={[6, 6, 0, 0]}
-                        maxBarSize={32}
+                        maxBarSize={36}
                         animationDuration={800}
                       />
                       <Bar
                         dataKey="incorrect"
-                        fill="oklch(0.6 0.2 25)"
+                        fill="url(#incorrectGrad)"
                         radius={[6, 6, 0, 0]}
-                        maxBarSize={32}
+                        maxBarSize={36}
                         animationDuration={800}
                       />
                     </BarChart>
@@ -1033,25 +1044,34 @@ accentColor="border-l-emerald-500" iconColor="text-emerald-600 dark:text-emerald
           </Card>
         </motion.div>
       </div>
+      </div>
 
-      {/* Bottom Row: Weekly Activity + Recent Quiz Attempts */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Weekly Activity Bar Chart */}
-        <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
-          <Card className="h-full transition-shadow duration-300 hover:shadow-md">
-            <CardHeader>
-              <CardTitle className="text-base">Weekly Activity</CardTitle>
-              <CardDescription>Hours studied per day this week</CardDescription>
-            </CardHeader>
-            <CardContent>
+      {/* Section: Recent Activity */}
+      <div className="space-y-4">
+        <SectionHeader icon={Clock} title="Recent Activity" subtitle="Your weekly study and quiz activity" accentColor="border-l-rose-500" iconColor="text-rose-600 dark:text-rose-400" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 auto-rows-fr">
+          {/* Weekly Activity Bar Chart */}
+          <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
+            <Card className="h-full transition-shadow duration-300 hover:shadow-md">
+              <CardHeader>
+                <CardTitle className="text-base">Weekly Activity</CardTitle>
+                <CardDescription>Hours studied per day this week</CardDescription>
+              </CardHeader>
+              <CardContent>
               {data.weeklyActivity?.length ? (
                 <ChartContainer config={{ hours: { label: 'Hours Studied', color: 'oklch(0.646 0.222 41.116)' } }} className="aspect-[16/9] max-h-[250px]">
                   <BarChart data={data.weeklyActivity} margin={{ left: -20, right: 10 }}>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                    <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                    <YAxis tickLine={false} axisLine={false} domain={[0, 'auto']} />
+                    <defs>
+                      <linearGradient id="hoursGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="oklch(0.646 0.222 41.116)" stopOpacity={0.95} />
+                        <stop offset="100%" stopColor="oklch(0.646 0.222 41.116)" stopOpacity={0.25} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="oklch(0.9 0 0)" />
+                    <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: 'oklch(0.6 0 0)' }} />
+                    <YAxis tickLine={false} axisLine={false} domain={[0, 'auto']} tick={{ fontSize: 12, fill: 'oklch(0.6 0 0)' }} />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="hours" fill="oklch(0.646 0.222 41.116)" radius={[6, 6, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="hours" fill="url(#hoursGradient)" radius={[8, 8, 0, 0]} maxBarSize={44} animationDuration={800} />
                   </BarChart>
                 </ChartContainer>
               ) : (
@@ -1065,38 +1085,61 @@ accentColor="border-l-emerald-500" iconColor="text-emerald-600 dark:text-emerald
         </motion.div>
 
         {/* Recent Quiz Attempts */}
-        <div className="flex flex-col">
-          <SectionHeader icon={Clock} title="Recent Activity" accentColor="border-l-rose-500" iconColor="text-rose-600 dark:text-rose-400" />
-          <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }} className="flex-1">
-            <Card className="h-full transition-shadow duration-300 hover:shadow-md">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Recent Quiz Attempts</CardTitle>
-                <CardDescription>Your last {data.quizAttempts?.length || 0} quiz results</CardDescription>
-              </CardHeader>
-              <CardContent>
+        <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
+          <Card className="h-full transition-shadow duration-300 hover:shadow-md">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Recent Quiz Attempts</CardTitle>
+              <CardDescription>Your last {data.quizAttempts?.length || 0} quiz results</CardDescription>
+            </CardHeader>
+            <CardContent>
                 {data.quizAttempts?.length ? (
                   <div className="space-y-1">
-                    {data.quizAttempts.map((quiz: any, index: number) => (
+                    {data.quizAttempts.map((quiz: any, index: number) => {
+                      const scoreColor = quiz.score >= 80 ? 'emerald' : quiz.score >= 60 ? 'amber' : 'red'
+                      return (
                       <motion.div key={quiz.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, delay: 0.05 * index }}
-                        className={cn('flex items-center gap-3 rounded-lg px-2.5 py-2.5 transition-colors', index % 2 === 0 ? 'bg-transparent' : 'bg-muted/30')}>
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">{quiz.date?.slice(5)}</div>
+                        whileHover={{ x: 4, transition: { duration: 0.2 } }}
+                        className={cn(
+                          'flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all border border-transparent',
+                          scoreColor === 'emerald' ? 'hover:border-emerald-200/50 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/15 dark:hover:border-emerald-800/30 hover:shadow-sm' :
+                          scoreColor === 'amber' ? 'hover:border-amber-200/50 hover:bg-amber-50/50 dark:hover:bg-amber-950/15 dark:hover:border-amber-800/30 hover:shadow-sm' :
+                          'hover:border-red-200/50 hover:bg-red-50/50 dark:hover:bg-red-950/15 dark:hover:border-red-800/30 hover:shadow-sm'
+                        )}>
+                        <div className={cn(
+                          'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[10px] font-bold tracking-tight',
+                          scoreColor === 'emerald' ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300' :
+                          scoreColor === 'amber' ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300' :
+                          'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300'
+                        )}>{quiz.date?.slice(5)}</div>
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className={cn('h-2 w-2 rounded-full shrink-0 ring-2', getScoreColor(quiz.score), getScoreRing(quiz.score))} />
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className={cn('h-2 w-2 rounded-full shrink-0', scoreColor === 'emerald' ? 'bg-emerald-500' : scoreColor === 'amber' ? 'bg-amber-500' : 'bg-red-500')} />
                             <p className="truncate text-sm font-medium">{quiz.title}</p>
                           </div>
-                          <div className="flex items-center gap-2.5 ml-4 mt-1">
-                            <Progress value={quiz.score} className="mt-0.5 h-1.5 flex-1 max-w-24" />
-                            <span className="text-xs font-bold tabular-nums">{quiz.score}</span>
+                          <div className="flex items-center gap-2 ml-4">
+                            <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden max-w-24">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${quiz.score}%` }}
+                                transition={{ duration: 0.6, delay: 0.2 + index * 0.05 }}
+                                className={cn('h-full rounded-full', scoreColor === 'emerald' ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : scoreColor === 'amber' ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-red-400 to-red-500')}
+                              />
+                            </div>
+                            <span className={cn('text-xs font-bold tabular-nums', scoreColor === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' : scoreColor === 'amber' ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400')}>{quiz.score}</span>
                             <span className="text-[10px] text-muted-foreground tabular-nums">/100</span>
                           </div>
                         </div>
-                        <Badge variant={quiz.score >= 70 ? 'default' : 'secondary'}
-                          className={quiz.score >= 70 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-0' : quiz.score >= 60 ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border-0' : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 border-0'}>
-                          {quiz.score >= 70 ? 'Passed' : quiz.score >= 60 ? 'Average' : 'Low'}
+                        <Badge
+                          className={cn(
+                            'border-0 text-[10px] font-semibold px-2.5 py-0.5 shadow-sm',
+                            quiz.score >= 80 ? 'bg-gradient-to-r from-emerald-100 to-emerald-200/80 text-emerald-700 dark:from-emerald-900/50 dark:to-emerald-800/40 dark:text-emerald-300' :
+                            quiz.score >= 60 ? 'bg-gradient-to-r from-amber-100 to-amber-200/80 text-amber-700 dark:from-amber-900/50 dark:to-amber-800/40 dark:text-amber-300' :
+                            'bg-gradient-to-r from-red-100 to-red-200/80 text-red-700 dark:from-red-900/50 dark:to-red-800/40 dark:text-red-300'
+                          )}>
+                          {quiz.score >= 80 ? 'Passed' : quiz.score >= 60 ? 'Average' : 'Needs Work'}
                         </Badge>
                       </motion.div>
-                    ))}
+                    )})}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
@@ -1112,7 +1155,7 @@ accentColor="border-l-emerald-500" iconColor="text-emerald-600 dark:text-emerald
               </CardContent>
             </Card>
           </motion.div>
-        </div>
+      </div>
       </div>
       {/* Material Priority AI Sheet */}
       <Sheet open={materialPriorityOpen} onOpenChange={setMaterialPriorityOpen}>
@@ -1185,18 +1228,21 @@ accentColor="border-l-emerald-500" iconColor="text-emerald-600 dark:text-emerald
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: i * 0.08 }}
-                      className="rounded-xl border border-border/60 bg-card p-4 space-y-2 hover:shadow-sm hover:border-amber-200/50 dark:hover:border-amber-800/30 transition-all"
+                       className="group relative rounded-xl border border-border/50 bg-card p-4 space-y-2 hover:border-amber-200/50 dark:hover:border-amber-800/30 hover:shadow-sm transition-all duration-300 overflow-hidden"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className={cn('h-2 w-2 rounded-full', s.priority === 'high' ? 'bg-rose-500' : s.priority === 'medium' ? 'bg-amber-500' : 'bg-sky-500')} />
-                          <span className="font-semibold text-sm">{s.topic}</span>
+                      <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-400 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-2.5 min-w-0">
+                          <div className={cn('h-2.5 w-2.5 rounded-full mt-1 ring-2 ring-offset-1 shrink-0', s.priority === 'high' ? 'bg-rose-500 ring-rose-200 dark:ring-rose-800' : s.priority === 'medium' ? 'bg-amber-500 ring-amber-200 dark:ring-amber-800' : 'bg-sky-500 ring-sky-200 dark:ring-sky-800')} />
+                          <div>
+                            <span className="font-semibold text-sm">{s.topic}</span>
+                            <p className="text-sm text-muted-foreground leading-relaxed mt-1">{s.reason}</p>
+                          </div>
                         </div>
-                        <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full', s.priority === 'high' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' : s.priority === 'medium' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300')}>{priorityLabel}</span>
+                        <span className={cn('text-[10px] font-semibold px-2.5 py-1 rounded-full shrink-0', s.priority === 'high' ? 'bg-gradient-to-r from-rose-100 to-rose-50 text-rose-700 dark:from-rose-900/40 dark:to-rose-800/30 dark:text-rose-300' : s.priority === 'medium' ? 'bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 dark:from-amber-900/40 dark:to-amber-800/30 dark:text-amber-300' : 'bg-gradient-to-r from-sky-100 to-sky-50 text-sky-700 dark:from-sky-900/40 dark:to-sky-800/30 dark:text-sky-300')}>{priorityLabel}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{s.reason}</p>
                       {s.estimatedTime && (
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
                           <Clock className="h-3 w-3" />
                           <span>{s.estimatedTime} to finish</span>
                         </div>
@@ -1305,35 +1351,35 @@ accentColor="border-l-emerald-500" iconColor="text-emerald-600 dark:text-emerald
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: i * 0.08 }}
-                      className="group relative w-full text-left rounded-xl border border-border/60 bg-card hover:bg-teal-50/50 dark:hover:bg-teal-950/20 hover:border-teal-200/50 dark:hover:border-teal-800/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                       className="group relative w-full text-left rounded-xl border border-border/50 bg-card hover:bg-gradient-to-r hover:from-teal-50/80 hover:to-emerald-50/80 dark:hover:from-teal-950/20 dark:hover:to-emerald-950/20 hover:border-teal-200/50 dark:hover:border-teal-800/30 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
                     >
-                      <div className="flex items-center gap-3 px-4 py-3">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground tabular-nums">
+                      <div className="absolute inset-y-0 left-0 w-0.5 bg-gradient-to-b from-teal-400 to-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="flex items-center gap-3 px-4 py-3.5">
+                        <div className={cn(
+                          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition-all duration-300',
+                          'bg-muted text-muted-foreground group-hover:bg-teal-100 group-hover:text-teal-700 dark:group-hover:bg-teal-900/50 dark:group-hover:text-teal-300'
+                        )}>
                           {i + 1}
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium truncate group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors">
                             {item.topic}
                           </p>
-                          <div className="mt-1 flex items-center gap-2">
-                            <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+                          <div className="mt-1.5 flex items-center gap-2">
+                            <div className="flex-1 h-1.5 rounded-full bg-muted/70 overflow-hidden">
                               <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${barPct}%` }}
                                 transition={{ duration: 0.6, delay: 0.3 + i * 0.08, ease: 'easeOut' }}
-                                className="h-full rounded-full bg-teal-400/70"
+                                className="h-full rounded-full bg-gradient-to-r from-teal-400 to-emerald-400"
                               />
                             </div>
-                            <span className="text-xs font-semibold tabular-nums text-teal-600 dark:text-teal-400 shrink-0">+{item.gain}%</span>
+                            <span className="text-xs font-bold tabular-nums text-teal-600 dark:text-teal-400 shrink-0">+{item.gain}%</span>
                           </div>
                         </div>
-                        <motion.div
-                          animate={{ x: [0, 4, 0] }}
-                          transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
-                          className="shrink-0 text-muted-foreground/30 group-hover:text-teal-400/50 transition-colors"
-                        >
-                          <ArrowRight className="h-4 w-4" />
-                        </motion.div>
+                        <div className="shrink-0 h-7 w-7 rounded-full bg-muted/50 flex items-center justify-center group-hover:bg-teal-100 dark:group-hover:bg-teal-900/40 group-hover:text-teal-500 transition-all duration-300">
+                          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/40 group-hover:text-teal-500" />
+                        </div>
                       </div>
                     </motion.button>
                   )
@@ -1363,87 +1409,95 @@ accentColor="border-l-emerald-500" iconColor="text-emerald-600 dark:text-emerald
       {/* Weak Topic AI Analysis Dialog */}
       <Dialog open={weakDialogOpen} onOpenChange={setWeakDialogOpen}>
         <DialogContent className="sm:max-w-lg rounded-2xl p-0 overflow-hidden gap-0 shadow-2xl border-0">
-          <div className="relative bg-card px-5 pt-5 pb-0">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/40 shadow-sm">
-                <BrainCircuit className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          {/* Header */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-orange-900 px-5 pt-5 pb-6">
+            <motion.div className="absolute -top-12 -right-12 w-36 h-36 bg-orange-400/10 rounded-full blur-3xl" animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
+            <motion.div className="absolute -bottom-8 -left-8 w-24 h-24 bg-amber-400/8 rounded-full blur-2xl" animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.5, 0.2] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 1 }} />
+            <motion.div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-400/50 to-transparent" animate={{ x: ['-100%', '100%'] }} transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }} />
+            <div className="relative z-10 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 shadow-sm">
+                <BrainCircuit className="h-5 w-5 text-orange-300" />
               </div>
               <div className="flex-1">
-                <DialogTitle className="text-base font-bold">AI Topic Analysis</DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                <DialogTitle className="text-base font-bold text-white">AI Topic Analysis</DialogTitle>
+                <DialogDescription className="text-xs text-white/60 mt-0.5">
                   {weakAnalysis ? weakAnalysis.topic : 'Analyzing...'}
                 </DialogDescription>
               </div>
               {weakAnalysis && (
                 <div className={cn(
-                  'px-3 py-1 rounded-full text-[11px] font-semibold border',
-                  weakAnalysis.analysis?.confidence === 'struggling' ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-800/30' :
-                  weakAnalysis.analysis?.confidence === 'improving' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-800/30' :
-                  'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-800/30'
+                  'px-3 py-1 rounded-full text-[11px] font-semibold shadow-sm',
+                  weakAnalysis.analysis?.confidence === 'struggling' ? 'bg-gradient-to-r from-red-50 to-red-100/80 text-red-700 border border-red-200 dark:from-red-950/30 dark:to-red-900/20 dark:text-red-300 dark:border-red-800/30' :
+                  weakAnalysis.analysis?.confidence === 'improving' ? 'bg-gradient-to-r from-emerald-50 to-emerald-100/80 text-emerald-700 border border-emerald-200 dark:from-emerald-950/30 dark:to-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800/30' :
+                  'bg-gradient-to-r from-amber-50 to-amber-100/80 text-amber-700 border border-amber-200 dark:from-amber-950/30 dark:to-amber-900/20 dark:text-amber-300 dark:border-amber-800/30'
                 )}>
                   {weakAnalysis.analysis?.confidence === 'struggling' ? 'Needs Work' :
                    weakAnalysis.analysis?.confidence === 'improving' ? 'Improving' : 'Needs Consistency'}
                 </div>
               )}
             </div>
-            <div className="absolute bottom-0 left-5 right-5 h-px bg-border" />
           </div>
           <div className="p-5">
             {weakLoading ? (
               <div className="flex flex-col items-center justify-center py-12 gap-3">
-                <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+                <div className="relative">
+                  <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+                  <motion.div className="absolute inset-0 rounded-full border-2 border-orange-500/20" animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 1.5, repeat: Infinity }} />
+                </div>
                 <p className="text-sm text-muted-foreground">Analyzing your weakest topic...</p>
               </div>
             ) : weakAnalysis ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between bg-muted/40 rounded-xl px-4 py-2.5">
-                  <span className="text-sm font-medium">Average Score</span>
+                <div className="flex items-center justify-between rounded-xl px-4 py-3 border border-border/50 bg-gradient-to-r from-muted/50 to-muted/30">
+                  <span className="text-sm font-semibold">Average Score</span>
                   <span className={cn(
-                    'text-lg font-bold tabular-nums',
-                    weakAnalysis.avgScore >= 60 ? 'text-emerald-600' : 'text-red-600'
+                    'text-xl font-bold tabular-nums',
+                    weakAnalysis.avgScore >= 60 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
                   )}>{weakAnalysis.avgScore}%</span>
                 </div>
-                <div className="bg-orange-50/60 dark:bg-orange-950/10 rounded-xl overflow-hidden">
-                  <div className="flex items-center gap-2.5 px-4 py-2.5">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/40">
+                <div className="rounded-xl overflow-hidden border border-border/50">
+                  <div className="flex items-center gap-2.5 px-4 py-2.5 bg-gradient-to-r from-orange-50 to-orange-100/60 dark:from-orange-950/30 dark:to-orange-900/20 border-b border-border/30">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/50">
                       <AlertCircle className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
                     </div>
                     <span className="text-xs font-bold text-orange-700 dark:text-orange-300 uppercase tracking-wider">Root Cause</span>
                   </div>
-                  <div className="px-4 pb-3 pt-0">
+                  <div className="px-4 py-3">
                     <p className="text-sm text-foreground/85 leading-relaxed">{weakAnalysis.analysis?.rootCause}</p>
                   </div>
                 </div>
-                <div className="bg-sky-50/60 dark:bg-sky-950/10 rounded-xl overflow-hidden">
-                  <div className="flex items-center gap-2.5 px-4 py-2.5">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-900/40">
+                <div className="rounded-xl overflow-hidden border border-border/50">
+                  <div className="flex items-center gap-2.5 px-4 py-2.5 bg-gradient-to-r from-sky-50 to-sky-100/60 dark:from-sky-950/30 dark:to-sky-900/20 border-b border-border/30">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-900/50">
                       <Target className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
                     </div>
                     <span className="text-xs font-bold text-sky-700 dark:text-sky-300 uppercase tracking-wider">Strategy</span>
                   </div>
-                  <div className="px-4 pb-3 pt-0">
+                  <div className="px-4 py-3">
                     <p className="text-sm text-foreground/85 leading-relaxed">{weakAnalysis.analysis?.strategy}</p>
                   </div>
                 </div>
-                <div className="bg-emerald-50/60 dark:bg-emerald-950/10 rounded-xl overflow-hidden">
-                  <div className="flex items-center gap-2.5 px-4 py-2.5">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/40">
+                <div className="rounded-xl overflow-hidden border border-border/50">
+                  <div className="flex items-center gap-2.5 px-4 py-2.5 bg-gradient-to-r from-emerald-50 to-emerald-100/60 dark:from-emerald-950/30 dark:to-emerald-900/20 border-b border-border/30">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
                       <BookOpen className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Focus Areas</span>
                   </div>
-                  <div className="px-4 pb-3 pt-0">
+                  <div className="px-4 py-3">
                     <div className="flex flex-wrap gap-2">
                       {weakAnalysis.analysis?.focusAreas?.map((area: string, i: number) => (
-                        <div key={i} className="px-3 py-1.5 rounded-lg bg-emerald-100/70 dark:bg-emerald-900/30 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                        <div key={i} className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-100 to-emerald-50 dark:from-emerald-900/40 dark:to-emerald-800/30 text-sm font-medium text-emerald-700 dark:text-emerald-300 shadow-sm">
                           {area}
                         </div>
                       ))}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2.5 bg-amber-50/50 dark:bg-amber-950/10 rounded-xl px-4 py-2.5">
-                  <Zap className="h-4 w-4 text-amber-500 shrink-0" />
+                <div className="flex items-center gap-2.5 rounded-xl border border-border/50 px-4 py-3 bg-gradient-to-r from-amber-50/50 to-amber-100/30 dark:from-amber-950/20 dark:to-amber-900/10">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/40">
+                    <Zap className="h-3.5 w-3.5 text-amber-500" />
+                  </div>
                   <span className="text-sm text-muted-foreground">
                     <strong className="text-foreground/80">Estimated effort:</strong> {weakAnalysis.analysis?.estimatedPracticeNeeded}
                   </span>

@@ -12,7 +12,6 @@ import {
   Trash2,
   Check,
   Tag,
-  FolderOpen,
   Bold,
   Italic,
   List,
@@ -23,18 +22,11 @@ import {
   Eye,
   Edit3,
   StickyNote,
-  Sparkles,
-  MoreHorizontal,
   Clock,
   RotateCcw,
   AlertTriangle,
+  ArrowLeft,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuthStore } from "@/stores/auth";
 import { useAppStore } from "@/stores/app";
 
@@ -143,7 +135,7 @@ function NoteCard({
   const preview = truncate(note.content.replace(/\n/g, " "), 80);
 
   return (
-    <motion.button
+    <motion.div
       layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -152,6 +144,9 @@ function NoteCard({
       whileHover={{ scale: 1.01, y: -1 }}
       whileTap={{ scale: 0.99 }}
       onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
       className={`w-full rounded-xl border text-left transition-all duration-200 cursor-pointer overflow-hidden group ${
         isActive
           ? 'bg-gradient-to-r from-white via-white dark:from-zinc-900 dark:via-zinc-900 shadow-md border-current/30'
@@ -197,7 +192,7 @@ function NoteCard({
           </span>
         </div>
       </div>
-    </motion.button>
+    </motion.div>
   );
 }
 
@@ -251,33 +246,22 @@ function NotesListSidebar({
           transition={{ delay: 0.1, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
           className="flex items-center justify-between"
         >
-          <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-md shadow-emerald-500/20">
-              <StickyNote className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold tracking-tight">Study Notes</h2>
-              <p className="text-[9px] text-muted-foreground/60">{notes.length} note{notes.length !== 1 ? 's' : ''}</p>
-            </div>
-          </div>
+          <h2 className="text-sm font-bold tracking-tight">Study Notes</h2>
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 gap-1 px-2 text-muted-foreground/50 hover:text-rose-500 hover:bg-rose-500/10 text-xs"
+            <button
               onClick={onTrashToggle}
               title="Trash"
+              className="flex size-7 items-center justify-center rounded-lg text-muted-foreground/40 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
             >
               <Trash2 className="h-3.5 w-3.5" />
-              <span>Bin</span>
-            </Button>
+            </button>
             <Button
               size="sm"
-              className="h-8 gap-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:from-emerald-700 hover:to-emerald-600 text-xs shadow-lg shadow-emerald-500/20 transition-all hover:shadow-emerald-500/30 hover:scale-105 active:scale-95 rounded-lg"
+              className="h-7 gap-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:from-emerald-700 hover:to-emerald-600 text-xs shadow-lg shadow-emerald-500/20 transition-all hover:shadow-emerald-500/30 hover:scale-105 active:scale-95 rounded-lg px-2.5"
               onClick={onNewNote}
             >
               <Plus className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">New Note</span>
+              <span className="hidden sm:inline">New</span>
             </Button>
           </div>
         </motion.div>
@@ -427,13 +411,13 @@ function TagPill({
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
-      className="inline-flex items-center gap-1 rounded-full bg-muted/70 backdrop-blur-sm px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground border border-border/50 shadow-sm"
+      className="inline-flex items-center gap-1 rounded-full bg-slate-800/40 backdrop-blur-sm px-2.5 py-0.5 text-[11px] font-medium text-slate-400 border border-white/5 shadow-sm"
     >
-      <Tag className="h-2.5 w-2.5" />
+      <Tag className="h-2.5 w-2.5 text-slate-500" />
       {tag}
       <button
         onClick={onRemove}
-        className="ml-0.5 rounded-full p-0.5 hover:bg-muted-foreground/20 transition-colors cursor-pointer"
+        className="ml-0.5 rounded-full p-0.5 hover:bg-slate-600/40 transition-colors cursor-pointer"
       >
         <X className="h-2.5 w-2.5" />
       </button>
@@ -446,6 +430,7 @@ function NoteEditor({
   onUpdate,
   onSave,
   onDelete,
+  onBack,
   isNew,
   categories,
 }: {
@@ -453,6 +438,7 @@ function NoteEditor({
   onUpdate: (updates: Partial<StudyNote>) => void;
   onSave: () => void;
   onDelete: () => void;
+  onBack?: () => void;
   isNew: boolean;
   categories: string[];
 }) {
@@ -516,6 +502,16 @@ function NoteEditor({
       ta.setSelectionRange(start + before.length, start + before.length + selected.length);
     }, 0);
   };
+
+  const formatTools = [
+    { icon: Heading1, label: 'H1', before: '# ', after: '' },
+    { icon: Heading2, label: 'H2', before: '## ', after: '' },
+    { icon: Bold, label: 'B', before: '**', after: '**' },
+    { icon: Italic, label: 'I', before: '_', after: '_' },
+    { icon: Code, label: 'Code', before: '`', after: '`' },
+    { icon: List, label: 'List', before: '- ', after: '' },
+    { icon: Quote, label: 'Quote', before: '> ', after: '' },
+  ];
 
   const renderInline = (text: string) => {
     const parts: { type: string; content: string }[] = [];
@@ -592,293 +588,428 @@ function NoteEditor({
     return elements;
   };
 
-  const formatTools = [
-    { icon: Heading1, label: 'Heading 1', action: () => insertFormat('# ', '') },
-    { icon: Heading2, label: 'Heading 2', action: () => insertFormat('## ', '') },
-    { icon: Bold, label: 'Bold', action: () => insertFormat('**', '**') },
-    { icon: Italic, label: 'Italic', action: () => insertFormat('_', '_') },
-    { icon: List, label: 'Bullet List', action: () => insertFormat('\n- ', '') },
-    { icon: Code, label: 'Code Block', action: () => insertFormat('\n```\n', '\n```\n') },
-    { icon: Quote, label: 'Quote', action: () => insertFormat('\n> ', '') },
-  ];
-
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="flex h-full flex-col bg-gradient-to-b from-background to-muted/20"
-    >
-      {/* Editor Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 border-b border-border/40 bg-background/80 backdrop-blur-sm px-3 sm:px-5 py-2 sm:py-2.5"
-      >
-        <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-          <div className={`flex items-center gap-1.5 rounded-lg px-2 py-1 border bg-muted/30 ${config.borderClass}`}>
-            <FileText className="h-3 w-3" />
-            <span className="font-medium">{charCount}</span>
-            <span className="text-muted-foreground/60">chars</span>
+    <div className="flex flex-col h-full bg-[#0a0a0f]">
+      {/* Header bar - aligned with max-w-4xl */}
+      <div className="shrink-0 border-b border-white/5 bg-white/[0.02] backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+          className="mx-auto max-w-4xl px-8 flex items-center justify-between h-12"
+        >
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-300 transition-colors mr-1">
+                <ArrowLeft className="h-3.5 w-3.5" />
+                {isNew ? 'Cancel' : 'Back'}
+              </button>
+            )}
+            <div className="flex items-center gap-2">
+              <FileText className="h-3.5 w-3.5 text-slate-500" />
+              <select
+                value={note.category}
+                onChange={(e) => onUpdate({ category: e.target.value })}
+                className="text-[11px] bg-slate-800/40 rounded-lg px-2 py-1.5 border border-white/5 text-slate-400 font-medium cursor-pointer outline-none hover:border-emerald-500/30 transition-colors"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <span className="text-muted-foreground/30 hidden sm:inline">|</span>
-          <span className="hidden sm:flex items-center gap-1 text-muted-foreground/60">
-            <Clock className="h-3 w-3" />
-            Updated {formatDate(note.updatedAt)}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          {/* Category Selector */}
-          <div className="flex items-center gap-1">
-            {categories.slice(0, 3).map((cat) => {
-              const ccfg = getCategoryConfig(cat);
-              const isActive = note.category === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => onUpdate({ category: cat })}
-                  className={`hidden sm:inline-flex items-center gap-1 rounded-full px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-medium transition-all border cursor-pointer ${
-                    isActive
-                      ? `${ccfg.pillClass} shadow-sm`
-                      : "text-muted-foreground/40 border-transparent hover:text-muted-foreground"
-                  }`}
-                >
-                  <span className={`h-1.5 w-1.5 rounded-full ${ccfg.dotClass}`} />
-                  <span className="hidden sm:inline">{cat}</span>
-                </button>
-              );
-            })}
-            <select
-              value={note.category}
-              onChange={(e) => onUpdate({ category: e.target.value })}
-              className="sm:hidden text-[10px] bg-muted/50 rounded-lg px-2 py-1.5 border border-border/50"
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Preview Toggle */}
-          <motion.div whileTap={{ scale: 0.9 }}>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`h-7 w-7 p-0 ${preview ? 'text-emerald-500 bg-emerald-500/10' : 'text-muted-foreground'}`}
+          <div className="flex items-center gap-1.5">
+            <button
               onClick={() => setPreview(!preview)}
+              className={`p-1.5 rounded-lg transition-colors ${
+                preview ? 'text-emerald-500 bg-emerald-500/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+              }`}
+              title="Toggle preview"
             >
               {preview ? <Edit3 className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-            </Button>
-          </motion.div>
-
-          {/* Delete Button */}
-          <motion.div whileTap={{ scale: 0.9 }}>
-            <Button
-              variant={showDeleteConfirm ? "destructive" : "ghost"}
-              size="sm"
-              className={`h-7 w-7 p-0 ${showDeleteConfirm ? '' : 'text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10'}`}
-              onClick={handleDelete}
-            >
-              {showDeleteConfirm ? <Trash2 className="h-3.5 w-3.5" /> : <Trash2 className="h-3.5 w-3.5" />}
-            </Button>
-          </motion.div>
-
-          {/* Save Button */}
-          <motion.div whileTap={{ scale: 0.9 }}>
-            <Button
-              size="sm"
-              className={`h-7 gap-1.5 text-xs rounded-lg shadow-sm transition-all px-3 ${
-                saveState === "saved"
-                  ? "bg-emerald-500 text-white shadow-emerald-500/20"
-                  : "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:from-emerald-700 hover:to-emerald-600 shadow-emerald-500/20 hover:shadow-emerald-500/30"
-              }`}
-              onClick={handleSave}
-              disabled={saveState === "saving"}
-            >
-              <AnimatePresence mode="wait">
-                {saveState === "saved" ? (
-                  <motion.span
-                    key="check"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                    className="flex items-center gap-1"
-                  >
-                    <Check className="h-3 w-3" />
-                    Saved
-                  </motion.span>
-                ) : saveState === "saving" ? (
-                  <motion.span
-                    key="saving"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex items-center gap-1"
-                  >
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
-                    >
-                      <Save className="h-3 w-3" />
-                    </motion.div>
-                    Saving
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    key="idle"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex items-center gap-1"
-                  >
-                    <Save className="h-3 w-3" />
-                    Save
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </Button>
-          </motion.div>
-        </div>
-      </motion.div>
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-        className="flex-1 overflow-y-auto"
-      >
-        <div className="mx-auto max-w-2xl px-3 sm:px-4 md:px-6 py-4 sm:py-5 md:py-6 space-y-4 sm:space-y-5">
-          {/* Title */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25, duration: 0.4 }}
-            className="relative group"
-          >
-            <input
-              ref={titleRef}
-              value={note.title}
-              onChange={(e) => onUpdate({ title: e.target.value })}
-              placeholder="Untitled Note"
-              className="w-full bg-transparent text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight placeholder:text-muted-foreground/30 outline-none border-none text-foreground transition-all duration-200 group-focus-within:tracking-normal"
-            />
-            {note.title && (
-              <motion.div
-                layoutId="titleBar"
-                className="absolute -left-2 top-0 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 opacity-60"
-              />
-            )}
-            <div className="absolute -inset-x-4 -inset-y-2 rounded-xl bg-emerald-500/[0.02] opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none" />
-          </motion.div>
-
-          {/* Tags */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.4 }}
-            className="space-y-2.5"
-          >
-            <div className="flex flex-wrap items-center gap-1.5">
-              <AnimatePresence>
-                {note.tags.map((tag) => (
-                  <TagPill key={tag} tag={tag} onRemove={() => removeTag(tag)} />
-                ))}
-              </AnimatePresence>
-            </div>
-            <div className="flex items-center gap-2 bg-muted/20 rounded-lg px-3 py-2 border border-border/30 group focus-within:border-emerald-500/30 focus-within:bg-background/50 transition-all">
-              <Tag className="h-3 w-3 text-muted-foreground/50 group-focus-within:text-emerald-500 transition-colors" />
-              <input
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") { e.preventDefault(); addTag(); }
-                }}
-                placeholder={note.tags.length === 0 ? "Add tags (press Enter)..." : ""}
-                className="flex-1 bg-transparent text-xs text-muted-foreground placeholder:text-muted-foreground/40 outline-none border-none"
-              />
-            </div>
-          </motion.div>
-          {!preview && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-              className="flex items-center gap-1 py-1.5 px-2 -mx-2 rounded-xl bg-muted/30 border border-border/30 sticky top-0 backdrop-blur-sm z-10 overflow-x-auto scrollbar-thin"
-            >
-              {formatTools.map((tool) => (
-                <motion.button
-                  key={tool.label}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={tool.action}
-                  className="p-1.5 rounded-lg hover:bg-muted/60 text-muted-foreground/60 hover:text-foreground transition-all"
-                  title={tool.label}
-                >
-                  <tool.icon className="h-3.5 w-3.5" />
-                </motion.button>
-              ))}
-              <div className="mx-1 h-4 w-px bg-border/30" />
-              <span className="text-[9px] text-muted-foreground/40 font-mono">Markdown</span>
+            </button>
+            <motion.div whileTap={{ scale: 0.9 }}>
+              <button
+                onClick={handleDelete}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  showDeleteConfirm
+                    ? 'text-rose-500 bg-rose-500/15'
+                    : 'text-slate-500 hover:text-rose-500 hover:bg-rose-500/10'
+                }`}
+                title={showDeleteConfirm ? 'Confirm delete' : 'Delete note'}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
             </motion.div>
-          )}
+            <motion.div whileTap={{ scale: 0.9 }}>
+              <Button
+                size="sm"
+                className={`h-7 gap-1 text-[11px] rounded-lg transition-all px-3 ${
+                  saveState === "saved"
+                    ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/20"
+                    : "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:from-emerald-700 hover:to-emerald-600 shadow-sm"
+                }`}
+                onClick={handleSave}
+                disabled={saveState === "saving"}
+              >
+                <AnimatePresence mode="wait">
+                  {saveState === "saved" ? (
+                    <motion.span key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex items-center gap-1">
+                      <Check className="h-3 w-3" /> Saved
+                    </motion.span>
+                  ) : saveState === "saving" ? (
+                    <motion.span key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-1">
+                      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}>
+                        <Save className="h-3 w-3" />
+                      </motion.div>
+                      Saving
+                    </motion.span>
+                  ) : (
+                    <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-1">
+                      <Save className="h-3 w-3" /> Save
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </Button>
+            </motion.div>
+          </div>
+        </motion.div>
+      </div>
 
-          {/* Divider */}
-          <motion.div
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ delay: 0.4, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-            className="h-px bg-gradient-to-r from-border/60 via-border/30 to-transparent origin-left"
+      {/* Scrollable editor area */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-4xl px-8 py-8 space-y-6">
+          {/* Title */}
+          <input
+            ref={titleRef}
+            value={note.title}
+            onChange={(e) => onUpdate({ title: e.target.value })}
+            placeholder="Untitled Note"
+            className="text-4xl font-extrabold text-slate-100 bg-transparent w-full tracking-tight placeholder:text-slate-700 focus:outline-none focus:ring-0"
           />
 
+          {/* Tags */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <AnimatePresence>
+              {note.tags.map((tag) => (
+                <TagPill key={tag} tag={tag} onRemove={() => removeTag(tag)} />
+              ))}
+            </AnimatePresence>
+            <input
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { e.preventDefault(); addTag(); }
+              }}
+              placeholder="Add tag..."
+              className="bg-slate-800/40 text-slate-400 border border-white/5 rounded-full px-3 py-1 text-xs transition hover:text-slate-200 hover:bg-slate-800/80 outline-none"
+            />
+          </div>
+
+          {/* Glassmorphic toolbar */}
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
+            className="bg-white/5 border border-white/5 rounded-lg px-3 py-1.5 backdrop-blur-sm gap-1 w-max shadow-sm flex items-center"
+          >
+            {formatTools.map((tool, i) => (
+              <motion.button
+                key={tool.label}
+                initial={{ opacity: 0, scale: 0.6, y: -8 }}
+                animate={{ opacity: 1, scale: 1, y: [0, -2, 0] }}
+                transition={{
+                  delay: 0.25 + i * 0.04,
+                  y: {
+                    duration: 2 + i * 0.3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: i * 0.15,
+                  },
+                  default: { type: "spring", stiffness: 300, damping: 14 }
+                }}
+                whileHover={{
+                  scale: 1.2,
+                  rotate: [0, -10, 8, -5, 0],
+                  transition: { duration: 0.35, ease: "easeInOut" }
+                }}
+                whileTap={{
+                  scale: 0.8,
+                  rotate: 0,
+                  transition: { type: "spring", stiffness: 500, damping: 8 }
+                }}
+                onClick={() => insertFormat(tool.before, tool.after)}
+                className="size-8 rounded-md text-slate-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors text-xs font-medium flex items-center justify-center relative"
+                title={tool.label}
+              >
+                <motion.div
+                  className="absolute inset-0 rounded-md border border-emerald-400/20"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileHover={{ opacity: 1, scale: 1.1 }}
+                  transition={{ duration: 0.2 }}
+                />
+                <tool.icon className="h-3.5 w-3.5 relative z-10" />
+              </motion.button>
+            ))}
+          </motion.div>
+
+          {/* Writing area */}
           <AnimatePresence mode="wait">
             {preview ? (
               <motion.div
                 key="preview"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.25 }}
-                className="min-h-[200px] sm:min-h-[280px] md:min-h-[320px] rounded-xl bg-muted/20 border border-border/20 p-3 sm:p-5 space-y-1"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="min-h-[450px] sm:min-h-[550px] space-y-1"
               >
                 {note.content.trim() ? renderMarkdown(note.content) : (
-                  <p className="text-sm text-muted-foreground/40 italic">Nothing to preview</p>
+                  <p className="text-sm text-slate-500 italic">Nothing to preview</p>
                 )}
               </motion.div>
             ) : (
-              <motion.div
-                key="textarea"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.25 }}
-              >
-                <Textarea
+              <motion.div key="textarea" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <textarea
                   ref={textareaRef}
                   value={note.content}
                   onChange={(e) => onUpdate({ content: e.target.value })}
-                  placeholder="Start writing your notes here... Use **bold**, _italic_, # headings, - lists, > quotes, `code`"
-                  className="min-h-[200px] sm:min-h-[280px] md:min-h-[360px] resize-none border-none bg-transparent shadow-none text-xs sm:text-sm leading-relaxed placeholder:text-muted-foreground/30 focus-visible:ring-0 focus-visible:border-0 p-0"
+                  placeholder="✨ Type '/' for AI commands or start writing..."
+                  className="w-full min-h-[450px] sm:min-h-[550px] text-base text-slate-300 bg-transparent resize-none focus:outline-none pt-2 leading-relaxed focus:ring-0 focus:border-0 placeholder:text-slate-600"
                 />
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Bottom stats */}
+          <div className="flex items-center justify-between text-[10px] text-slate-600">
+            <span>
+              {charCount} char{charCount !== 1 ? 's' : ''} &middot; {note.content.split(/\s+/).filter(Boolean).length} word{note.content.split(/\s+/).filter(Boolean).length !== 1 ? 's' : ''}
+            </span>
+            <span>Updated {formatDate(note.updatedAt)}</span>
+          </div>
         </div>
-      </motion.div>
+      </div>
+    </div>
+  );
+}
+
+function NoteGridCard({ note, onClick, onDelete, index = 0 }: { note: StudyNote; onClick: () => void; onDelete?: (id: string) => void; index?: number }) {
+  const config = getCategoryConfig(note.category);
+  const preview = truncate(note.content.replace(/\n/g, ' '), 100);
+
+  const floatAmplitude = 2 + (index % 3) * 1.5;
+  const floatDuration = 3 + (index % 4) * 0.8;
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      whileHover={{
+        y: -(4 + (index % 3)),
+        scale: 1.02,
+        rotate: index % 2 === 0 ? 0.8 : -0.8,
+        boxShadow: `0 12px 40px -8px ${config.hex}25`,
+      }}
+      whileTap={{ scale: 0.98 }}
+      transition={{
+        type: "spring",
+        stiffness: 200,
+        damping: 18,
+        mass: 0.8,
+        delay: index * 0.04,
+      }}
+      onClick={onClick}
+      className="group relative rounded-xl border border-border/20 bg-gradient-to-b from-card to-muted/20 p-3.5 cursor-pointer transition-colors hover:border-emerald-500/20"
+    >
+      {/* Animated accent bar */}
+      <motion.div
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ delay: 0.15 + index * 0.04, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+        className="absolute top-0 left-0 right-0 h-[2px] rounded-t-xl origin-left"
+        style={{ background: `linear-gradient(90deg, ${config.hex}, ${config.hex}88, transparent)` }}
+      />
+
+      {/* Subtle breathing glow */}
+      <motion.div
+        animate={{
+          opacity: [0.15, 0.4, 0.15],
+          scale: [1, 1.02, 1],
+        }}
+        transition={{
+          duration: floatDuration,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: index * 0.2,
+        }}
+        className="absolute inset-0 rounded-xl pointer-events-none"
+        style={{ background: `radial-gradient(ellipse at 50% 0%, ${config.hex}15, transparent 70%)` }}
+      />
+
+      {/* Header */}
+      <div className="relative z-10 flex items-start justify-between gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <motion.span
+            animate={{ scale: [1, 1.3, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: index * 0.3 }}
+            className={`size-2 rounded-full ${config.dotClass} shrink-0`}
+          />
+          <span className="text-[9px] font-medium text-muted-foreground/50 truncate">{note.category}</span>
+        </div>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {onDelete && (
+            <motion.button
+              whileHover={{ scale: 1.2, rotate: 10 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={(e) => { e.stopPropagation(); onDelete(note.id); }}
+              className="p-1 rounded-md text-muted-foreground/30 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+            >
+              <Trash2 className="size-3" />
+            </motion.button>
+          )}
+        </div>
+      </div>
+
+      {/* Title */}
+      <h3 className="relative z-10 mt-2 text-sm font-semibold leading-snug line-clamp-1 text-foreground/90">
+        {note.title || <span className="italic text-muted-foreground/40">Untitled</span>}
+      </h3>
+
+      {/* Preview */}
+      {preview && (
+        <p className="relative z-10 mt-1 text-[11px] text-muted-foreground/60 leading-relaxed line-clamp-2">
+          {preview}
+        </p>
+      )}
 
       {/* Footer */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.45, duration: 0.3 }}
-        className="border-t border-border/30 px-3 sm:px-5 py-2 flex items-center justify-between bg-background/60 backdrop-blur-sm"
-        style={{ borderTopColor: `${config.hex}4d` } as React.CSSProperties}
-      >
-        <span className="text-[10px] text-muted-foreground/50 flex items-center gap-2">
-          <span>{charCount} character{charCount !== 1 ? 's' : ''}</span>
-          <span className="text-muted-foreground/20">|</span>
-          <span>{note.content.split(/\s+/).filter(Boolean).length} word{note.content.split(/\s+/).filter(Boolean).length !== 1 ? 's' : ''}</span>
+      <div className="relative z-10 mt-3 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          {note.tags.slice(0, 2).map((tag, ti) => (
+            <motion.span
+              key={tag}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 + index * 0.04 + ti * 0.06 }}
+              className="text-[8px] px-1.5 py-0.5 rounded-full bg-muted/40 text-muted-foreground/40 border border-border/20"
+            >
+              {tag}
+            </motion.span>
+          ))}
+          {note.tags.length > 2 && (
+            <span className="text-[8px] text-muted-foreground/30">+{note.tags.length - 2}</span>
+          )}
+        </div>
+        <span className="text-[9px] text-muted-foreground/30 shrink-0">
+          {formatDate(note.updatedAt)}
         </span>
-        <CategoryBadge category={note.category} />
+      </div>
+    </motion.div>
+  );
+}
+
+function LoadingGrid() {
+  return (
+    <div className="p-4 sm:p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="rounded-xl border border-border/20 p-3.5 animate-pulse">
+            <div className="flex items-center gap-1.5">
+              <div className="size-2 rounded-full bg-muted/40" />
+              <div className="h-2.5 w-16 rounded bg-muted/40" />
+            </div>
+            <div className="mt-3 h-4 w-3/4 rounded bg-muted/30" />
+            <div className="mt-2 h-3 w-full rounded bg-muted/20" />
+            <div className="mt-1 h-3 w-2/3 rounded bg-muted/20" />
+            <div className="mt-3 flex items-center gap-1.5">
+              <div className="h-3 w-10 rounded-full bg-muted/30" />
+              <div className="h-3 w-8 rounded-full bg-muted/30" />
+              <div className="flex-1" />
+              <div className="h-2.5 w-12 rounded bg-muted/20" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TrashOverlay({ trashNotes, onRestore, onPermanentDelete, onClose }: {
+  trashNotes: StudyNote[];
+  onRestore: (id: string) => void;
+  onPermanentDelete: (id: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="absolute inset-0 z-20 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+        className="w-full max-w-lg max-h-[80vh] flex flex-col bg-gradient-to-b from-card to-muted/20 rounded-2xl border border-border/30 shadow-2xl mx-4 overflow-hidden"
+      >
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border/15">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-orange-600 shadow-md shadow-rose-500/20">
+              <Trash2 className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold tracking-tight">Trash</h2>
+              <p className="text-[9px] text-muted-foreground/60">{trashNotes.length} note{trashNotes.length !== 1 ? 's' : ''}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="flex size-7 items-center justify-center rounded-lg text-muted-foreground/40 hover:text-foreground hover:bg-muted/50 transition-colors">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          {trashNotes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/50 text-xs gap-2">
+              <Trash2 className="h-10 w-10 opacity-30" />
+              <p>Trash is empty</p>
+            </div>
+          ) : (
+            <AnimatePresence mode="popLayout">
+              {trashNotes.map((note) => (
+                <motion.div
+                  key={note.id}
+                  layout
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  className="rounded-xl border border-border/30 bg-card/40 p-3"
+                >
+                  <h3 className="text-sm font-semibold leading-snug line-clamp-1 text-muted-foreground/80">
+                    {note.title || <span className="italic text-muted-foreground/40">Untitled Note</span>}
+                  </h3>
+                  <div className="mt-2.5 flex items-center gap-2">
+                    <button
+                      onClick={() => onRestore(note.id)}
+                      className="inline-flex items-center gap-1 h-7 px-2.5 text-[10px] font-medium rounded-lg text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
+                    >
+                      <RotateCcw className="h-3 w-3" /> Restore
+                    </button>
+                    <button
+                      onClick={() => onPermanentDelete(note.id)}
+                      className="inline-flex items-center gap-1 h-7 px-2.5 text-[10px] font-medium rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                    >
+                      <AlertTriangle className="h-3 w-3" /> Delete forever
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
+        </div>
       </motion.div>
     </motion.div>
   );
@@ -890,15 +1021,15 @@ function EmptySearchState() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-      className="flex flex-col items-center justify-center py-20 text-center px-6"
+      className="flex flex-col items-center justify-center size-full text-center px-6"
     >
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 15 }}
       >
-        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/40 shadow-lg">
-          <Search className="h-8 w-8 text-muted-foreground/40" />
+        <div className="flex size-20 items-center justify-center rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/40 shadow-lg">
+          <Search className="size-8 text-muted-foreground/40" />
         </div>
       </motion.div>
       <motion.div
@@ -915,87 +1046,62 @@ function EmptySearchState() {
   );
 }
 
-function EmptySelectState() {
-  const [writingPhase, setWritingPhase] = useState(0)
-
-  useEffect(() => {
-    if (writingPhase >= 4) {
-      const reset = setTimeout(() => setWritingPhase(0), 1200)
-      return () => clearTimeout(reset)
-    }
-    const advance = setTimeout(() => setWritingPhase(p => p + 1), 800)
-    return () => clearTimeout(advance)
-  }, [writingPhase])
-
+function EmptySelectState({ onNewNote }: { onNewNote?: () => void }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-      className="relative flex flex-col items-center justify-center w-full h-full text-center px-3 sm:px-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
+      className="relative flex h-full w-full items-center justify-center overflow-hidden"
     >
-      {/* Animated grid background */}
-      <div
-        className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(16,185,129,0.3) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(16,185,129,0.3) 1px, transparent 1px)
-          `,
-          backgroundSize: '40px 40px',
-        }}
-      />
-
       {/* Ambient orbs */}
       <motion.div
-        className="absolute -top-20 -right-20 size-60 sm:size-80 rounded-full bg-emerald-500/5 blur-3xl"
-        animate={{ scale: [1, 1.4, 1], rotate: [0, 90, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-24 -right-24 size-72 rounded-full bg-emerald-500/[0.03] blur-3xl"
+        animate={{ scale: [1, 1.3, 1], rotate: [0, 15, 0] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        className="absolute -bottom-20 -left-20 size-60 sm:size-80 rounded-full bg-teal-500/5 blur-3xl"
-        animate={{ scale: [1.3, 0.8, 1.3], rotate: [0, -90, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-64 sm:size-96 rounded-full bg-emerald-500/[0.02] blur-3xl"
-        animate={{ scale: [0.8, 1.1, 0.8] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -bottom-24 -left-24 size-72 rounded-full bg-teal-500/[0.03] blur-3xl"
+        animate={{ scale: [1.2, 0.9, 1.2], rotate: [0, -15, 0] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
 
       {/* Floating sticky notes */}
       {[
-        { top: 15, left: 10, delay: 0, rotate: -12, color: 'bg-amber-500' },
-        { top: 25, right: 12, delay: 1, rotate: 8, color: 'bg-sky-500' },
-        { top: 60, left: 8, delay: 2, rotate: -6, color: 'bg-violet-500' },
-        { top: 55, right: 10, delay: 0.5, rotate: 15, color: 'bg-rose-500' },
-        { top: 70, left: 18, delay: 1.5, rotate: -18, color: 'bg-emerald-500' },
+        { top: 10, left: 6, delay: 0, rotate: -12, color: 'bg-amber-500' },
+        { top: 18, right: 8, delay: 1.5, rotate: 8, color: 'bg-sky-500' },
+        { top: 65, left: 5, delay: 3, rotate: -6, color: 'bg-violet-500' },
+        { top: 58, right: 6, delay: 0.8, rotate: 15, color: 'bg-rose-500' },
+        { top: 78, left: 12, delay: 2.2, rotate: -18, color: 'bg-emerald-500' },
       ].map((note, i) => (
         <motion.div
-          key={i}
+          key={`note-${i}`}
           className="absolute pointer-events-none"
-          style={{ top: `${note.top}%`, left: note.left !== undefined ? `${note.left}%` : undefined, right: note.right !== undefined ? `${note.right}%` : undefined }}
-          initial={{ opacity: 0, y: 20, rotate: 0 }}
+          style={{
+            top: `${note.top}%`,
+            left: note.left !== undefined ? `${note.left}%` : undefined,
+            right: note.right !== undefined ? `${note.right}%` : undefined,
+          }}
           animate={{
-            opacity: [0, 0.4, 0],
-            y: [0, -40 - Math.random() * 30],
+            opacity: [0, 0.35, 0],
+            y: [0, -30 - Math.random() * 20],
             rotate: note.rotate,
           }}
           transition={{
-            duration: 5 + Math.random() * 3,
+            duration: 6 + Math.random() * 3,
             repeat: Infinity,
             delay: note.delay,
             ease: "easeInOut",
           }}
         >
-          <div className={`size-5 rounded-sm ${note.color}/20 border ${note.color}/30 shadow-sm flex items-center justify-center`}>
-            <div className={`size-2 rounded-sm ${note.color}/40`} />
+          <div className={`size-6 rounded-sm ${note.color}/15 border ${note.color}/25 shadow-sm`}>
+            <div className={`mx-auto mt-1.5 size-3 rounded-sm ${note.color}/30`} />
           </div>
         </motion.div>
       ))}
 
       {/* Sparkle particles */}
-      {[...Array(8)].map((_, i) => (
+      {[...Array(5)].map((_, i) => (
         <motion.div
           key={`sparkle-${i}`}
           className="absolute pointer-events-none"
@@ -1003,273 +1109,140 @@ function EmptySelectState() {
             top: `${20 + Math.random() * 60}%`,
             left: `${15 + Math.random() * 70}%`,
           }}
-          initial={{ opacity: 0, scale: 0 }}
           animate={{
-            opacity: [0, 0.8, 0],
+            opacity: [0, 0.6, 0],
             scale: [0, 1.2, 0],
-            rotate: [0, 180],
           }}
           transition={{
-            duration: 2 + Math.random() * 3,
+            duration: 3 + Math.random() * 3,
             repeat: Infinity,
-            delay: i * 0.6,
+            delay: i * 0.8 + 0.5,
             ease: "easeInOut",
           }}
         >
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-            <path d="M5 0L6.12 3.88L10 5L6.12 6.12L5 10L3.88 6.12L0 5L3.88 3.88Z" fill="#10b981" opacity="0.5" />
-          </svg>
+          <div className="size-1.5 bg-emerald-400/40 rotate-45" />
         </motion.div>
       ))}
 
-      {/* Beam behind notepad */}
+      {/* Central content */}
       <motion.div
-        className="absolute w-[200px] h-[200px] rounded-full bg-gradient-to-b from-emerald-500/8 via-transparent to-transparent blur-2xl"
-        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        style={{ top: '38%' }}
-      />
-
-      {/* Notepad scene */}
-      <motion.div
-        initial={{ y: 80, opacity: 0, rotateX: 15 }}
-        animate={{ y: 0, opacity: 1, rotateX: 0 }}
-        transition={{ delay: 0.15, duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-        className="relative perspective-[800px] z-10"
-        style={{ transformStyle: "preserve-3d" }}
+        initial={{ y: 24, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.15, duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+        className="relative z-10 flex flex-col items-center justify-center text-center px-6 h-full"
       >
-        {/* Orbiting ring */}
-        <motion.div
-          className="absolute -inset-8 rounded-full border border-emerald-500/10"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        />
-        <motion.div
-          className="absolute -inset-10 rounded-full border border-dashed border-teal-500/8"
-          animate={{ rotate: -360 }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-        />
-
-        {/* Shadow beneath notepad */}
-        <motion.div
-          className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[120px] sm:w-[160px] h-3 sm:h-4 rounded-full bg-emerald-500/10 blur-md"
-          animate={{ width: [120, 100, 120], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        />
-
-        <motion.div
-          className="relative"
-          animate={{ y: [0, -3, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        >
-          {/* Notepad body */}
-          <motion.div
-            className="relative w-[120px] h-[86px] sm:w-[150px] sm:h-[108px] rounded-[10px] overflow-hidden"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            {/* Paper texture overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white to-zinc-50 dark:from-zinc-800 dark:to-zinc-900 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)]" />
-            <div
-              className="absolute inset-0 opacity-[0.03] dark:opacity-[0.06] mix-blend-overlay"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                backgroundSize: '200px 200px',
-              }}
-            />
-            {/* Subtle ruled line pattern bg */}
-            <div className="absolute inset-0 opacity-[0.04] dark:opacity-[0.08]"
-              style={{
-                backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 17px, currentColor 17px, currentColor 18px)",
-                backgroundSize: "100% 18px",
-              }}
-            />
-
-            {/* Top shadow line */}
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent" />
-
-            {/* Spiral binding holes */}
-            {[25, 50, 75, 120].map((x, i) => (
+        <div className="flex flex-col items-center gap-7">
+          {/* Animated icon with rotating rings */}
+          <div className="relative">
+            {/* Sparkles around the icon */}
+            {[
+              { angle: 0, delay: 0, size: 'size-1.5' },
+              { angle: 72, delay: 0.8, size: 'size-2' },
+              { angle: 144, delay: 1.6, size: 'size-1.5' },
+              { angle: 216, delay: 0.4, size: 'size-2' },
+              { angle: 288, delay: 1.2, size: 'size-1.5' },
+            ].map((sparkle, i) => (
               <motion.div
                 key={i}
-                className="absolute top-[6px] size-[6px] rounded-full border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800"
-                style={{ left: x }}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.3 + i * 0.08, type: "spring", stiffness: 300 }}
-              />
-            ))}
-
-            {/* Animated writing lines on notepad */}
-            {/* Line 1 */}
-            <motion.div
-              className="absolute top-[20px] sm:top-[26px] left-[12px] sm:left-[14px] h-[2px] rounded-full bg-emerald-500/30 origin-left"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: writingPhase >= 1 ? 1 : 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              style={{ width: 50 }}
-            />
-            {/* Line 2 */}
-            <motion.div
-              className="absolute top-[34px] sm:top-[44px] left-[12px] sm:left-[14px] h-[2px] rounded-full bg-emerald-500/30 origin-left"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: writingPhase >= 2 ? 1 : 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              style={{ width: 38 }}
-            />
-            {/* Line 3 */}
-            <motion.div
-              className="absolute top-[48px] sm:top-[62px] left-[12px] sm:left-[14px] h-[2px] rounded-full bg-emerald-500/30 origin-left"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: writingPhase >= 3 ? 1 : 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              style={{ width: 44 }}
-            />
-            {/* Line 4 */}
-            <motion.div
-              className="absolute top-[62px] sm:top-[80px] left-[12px] sm:left-[14px] h-[2px] rounded-full bg-emerald-500/25 origin-left"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: writingPhase >= 4 ? 1 : 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              style={{ width: 26 }}
-            />
-
-            {/* Page curl animation */}
-            <motion.div
-              className="absolute bottom-0 right-0"
-              animate={{ rotate: writingPhase >= 4 ? [0, -3, 0] : 0 }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            >
-              <div className="w-0 h-0 border-b-[14px] border-r-[14px] border-b-transparent border-r-zinc-200 dark:border-r-zinc-700 rounded-br-[10px]" />
-            </motion.div>
-          </motion.div>
-
-          {/* Pen */}
-          <motion.div
-            className="absolute -right-[16px] sm:-right-[20px] z-10"
-            initial={{ rotate: 0 }}
-            animate={{
-              rotate: writingPhase === 0 ? 15 : [15, 12, 15],
-              y: writingPhase === 0 ? -16 : (
-                writingPhase === 1 ? -14 :
-                writingPhase === 2 ? -29 :
-                writingPhase === 3 ? -44 :
-                writingPhase === 4 ? -58 : -16
-              ),
-              x: writingPhase === 0 ? 10 : (
-                writingPhase === 1 ? 8 :
-                writingPhase === 2 ? 10 :
-                writingPhase === 3 ? 9 :
-                writingPhase === 4 ? 11 : 10
-              ),
-            }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            style={{ top: 22 }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="sm:w-[24px] sm:h-[24px] drop-shadow-lg">
-              <motion.g
-                animate={{ rotate: [-2, 2, -2] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute pointer-events-none"
+                style={{
+                  top: '50%',
+                  left: '50%',
+                }}
+                initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+                animate={{
+                  opacity: [0, 1, 0],
+                  scale: [0, 1.2, 0],
+                  x: [0, Math.cos(sparkle.angle * Math.PI / 180) * 52],
+                  y: [0, Math.sin(sparkle.angle * Math.PI / 180) * 52],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  delay: sparkle.delay,
+                  ease: "easeInOut",
+                }}
               >
-                <rect x="8" y="3" width="8" height="16" rx="1.5" fill="#10b981" />
-                <rect x="8" y="3" width="8" height="16" rx="1.5" fill="url(#penGrad2)" />
-                <path d="M11 19 L13 19 L12 23 Z" fill="#059669" />
-                <rect x="7" y="2" width="10" height="3" rx="1" fill="#059669" />
-                <path d="M11.5 19 L12.5 19 L12 21 Z" fill="#047857" />
-                {/* Pen clip */}
-                <rect x="15" y="4" width="2" height="6" rx="0.5" fill="#047857" opacity="0.6" />
-              </motion.g>
-              {/* Pen glint */}
-              <motion.circle
-                cx="14" cy="7" r="1.5"
-                fill="white" opacity="0.4"
-                animate={{ opacity: [0.2, 0.6, 0.2] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <defs>
-                <linearGradient id="penGrad2" x1="8" y1="0" x2="16" y2="0">
-                  <stop offset="0%" stopColor="#10b981" />
-                  <stop offset="50%" stopColor="#34d399" />
-                  <stop offset="100%" stopColor="#059669" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </motion.div>
-
-          {/* Writing tip glow */}
-          <motion.div
-            className="absolute size-2 rounded-full bg-emerald-400 blur-sm z-20"
-            style={{ left: 14 }}
-            animate={{
-              opacity: [0, 0.6, 0],
-              scale: [0.5, 1.3, 0.5],
-              top: writingPhase === 0 ? 24 : (
-                writingPhase === 1 ? 24 :
-                writingPhase === 2 ? 42 :
-                writingPhase === 3 ? 60 :
-                writingPhase === 4 ? 78 : 24
-              ),
-            }}
-            transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </motion.div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="relative z-10"
-      >
-        <motion.h3
-          initial={{ opacity: 0, y: 12, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.25, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-          className="mt-6 text-lg font-bold relative"
-        >
-          <span
-            className="bg-gradient-to-r from-emerald-600 via-teal-500 via-emerald-400 to-emerald-600 bg-clip-text text-transparent"
-            style={{
-              backgroundSize: '200% 100%',
-              WebkitBackgroundClip: 'text',
-            }}
-          >
-            <motion.span
-              animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-              style={{
-                backgroundImage: 'linear-gradient(90deg, #059669, #14b8a6, #34d399, #059669)',
-                backgroundSize: '300% 100%',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
+                <div className={`${sparkle.size} bg-emerald-400/60 rotate-45`}
+                  style={{
+                    clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
+                  }}
+                />
+              </motion.div>
+            ))}
+            <motion.div
+              className="absolute -inset-6 rounded-full border border-emerald-500/10"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+            />
+            <motion.div
+              className="absolute -inset-3 rounded-full border border-dashed border-teal-500/10"
+              animate={{ rotate: -360 }}
+              transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+            />
+            <motion.div
+              animate={{ y: [-3, 3, -3] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+              className="relative flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/15 shadow-lg shadow-emerald-500/5 backdrop-blur-sm"
             >
-              Select a note
-            </motion.span>
+              <PenLine className="h-7 w-7 text-emerald-500/80" />
+              <motion.div
+                className="absolute inset-0 rounded-2xl bg-emerald-500/10"
+                animate={{ opacity: [0, 0.35, 0] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+            </motion.div>
+          </div>
+
+        {/* Heading */}
+        <motion.h3
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+          className="text-xl font-bold tracking-tight"
+        >
+          <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
+            Where Ideas Take Shape
           </span>
-          {/* Underline glow */}
-          <motion.div
-            className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent"
-            initial={{ scaleX: 0, width: 0 }}
-            animate={{ scaleX: 1, width: 80 }}
-            transition={{ delay: 0.8, duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-            style={{ originX: 0.5 }}
-          />
         </motion.h3>
+
+        {/* Subtext */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.38, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-          className="mt-2 text-xs text-muted-foreground/50 max-w-[240px] mx-auto leading-relaxed"
+          transition={{ delay: 0.4, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+          className="text-sm text-muted-foreground/60 max-w-[240px] leading-relaxed"
         >
-          Choose a note from the sidebar or create a new one to start writing.
+          Create a new note to start writing. Your AI-powered study workspace is ready.
         </motion.p>
+
+        {/* New Note button */}
+        {onNewNote && (
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+            whileHover={{
+              scale: 1.03,
+              boxShadow: "0 8px 30px -5px rgba(16, 185, 129, 0.35)",
+            }}
+            whileTap={{ scale: 0.97 }}
+            onClick={onNewNote}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-emerald-500/20 transition-all"
+          >
+            <Plus className="h-4 w-4" />
+            New Note
+          </motion.button>
+        )}
+
+        {/* Keyboard shortcut */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-          className="mt-8 flex items-center justify-center gap-2.5 text-[10px] text-muted-foreground/40"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7, duration: 0.5 }}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground/40"
         >
+          <span>or press</span>
           <motion.kbd
             animate={{
               boxShadow: [
@@ -1280,19 +1253,13 @@ function EmptySelectState() {
               ],
               scale: [1, 1.06, 1],
             }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-2 py-1 text-[11px] font-mono font-semibold text-emerald-600 dark:text-emerald-400"
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+            className="rounded-md border border-emerald-500/20 bg-emerald-500/5 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-emerald-600 dark:text-emerald-400 shadow-sm"
           >
             Ctrl+N
           </motion.kbd>
-          <motion.span
-            animate={{ opacity: [0.3, 0.7, 0.3] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            className="text-[11px]"
-          >
-            to create a new note
-          </motion.span>
         </motion.div>
+        </div>
       </motion.div>
     </motion.div>
   );
@@ -1553,229 +1520,201 @@ export default function StudyNotes() {
 
   const editorNote = activeNote ?? { id: "", title: "", content: "", category: "General", tags: [], createdAt: new Date(), updatedAt: new Date() };
 
+  const allCategories = useMemo(() => ['All', ...categories], [categories]);
+
+  const handleBackFromEditor = useCallback(() => {
+    if (isNewNote && editBuffer && editBuffer.id.startsWith('temp_') && !editBuffer.title && !editBuffer.content && editBuffer.tags.length === 0) {
+      setNotes((prev) => prev.filter((n) => n.id !== editBuffer.id));
+    }
+    setSelectedId(null);
+    setEditBuffer(null);
+    setIsNewNote(false);
+    setPendingTempId(null);
+    setMobileTab("list");
+  }, [isNewNote, editBuffer]);
+
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
       className="relative flex h-full min-h-0 md:min-h-[500px] md:rounded-2xl md:border md:border-border/40 bg-gradient-to-br from-card via-card/95 to-muted/30 md:overflow-hidden md:shadow-xl md:shadow-black/5"
     >
-      {/* Page-level ambient orbs */}
-      <motion.div
-        className="absolute -top-32 -right-32 size-96 rounded-full bg-emerald-500/[0.03] blur-3xl pointer-events-none"
-        animate={{ scale: [1, 1.15, 1], rotate: [0, 30, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute -bottom-32 -left-32 size-96 rounded-full bg-teal-500/[0.03] blur-3xl pointer-events-none"
-        animate={{ scale: [1.1, 0.95, 1.1], rotate: [0, -30, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-      />
-      {/* Desktop Layout */}
-      <div className="hidden lg:flex h-full w-full">
-        {/* Sidebar - only on large screens */}
-        <div className="hidden lg:flex w-[260px] lg:w-[300px] xl:w-[35%] xl:min-w-[280px] xl:max-w-[400px] border-r border-border/30 flex-col bg-gradient-to-b from-background via-muted/10 to-background">
-          {showTrash ? (
-            <div className="flex h-full flex-col">
-              <div className="flex items-center justify-between px-4 pt-5 pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-rose-500 to-orange-600 shadow-md shadow-rose-500/20">
-                    <Trash2 className="h-4 w-4 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-bold tracking-tight">Trash</h2>
-                    <p className="text-[9px] text-muted-foreground/60">{trashNotes.length} note{trashNotes.length !== 1 ? 's' : ''}</p>
-                  </div>
-                </div>
-                <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs" onClick={toggleTrash}>
-                  <PenLine className="h-3.5 w-3.5" />
-                  Back
-                </Button>
-              </div>
-              <ScrollArea className="flex-1 px-3 pb-3">
-                {trashNotes.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-40 text-muted-foreground/50 text-xs gap-2">
-                    <Trash2 className="h-8 w-8 opacity-30" />
-                    <p>Trash is empty</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <AnimatePresence mode="popLayout">
-                      {trashNotes.map((note, index) => (
-                        <motion.div
-                          key={note.id}
-                          layout
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, x: -20, scale: 0.95 }}
-                          transition={{ duration: 0.25, delay: index * 0.035 }}
-                          className="group rounded-xl border border-border/40 bg-card/40 p-3"
-                        >
-                          <h3 className="text-sm font-semibold leading-snug line-clamp-1 text-muted-foreground/80">
-                            {note.title || <span className="italic text-muted-foreground/40">Untitled Note</span>}
-                          </h3>
-                          <p className="mt-1 text-[11px] text-muted-foreground/50 line-clamp-2">
-                            {note.content || 'No content'}
-                          </p>
-                          <div className="mt-2.5 flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 text-[10px] gap-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
-                              onClick={() => handleRestore(note.id)}
-                            >
-                              <RotateCcw className="h-3 w-3" />
-                              Restore
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 text-[10px] gap-1 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                              onClick={() => handlePermanentDelete(note.id)}
-                            >
-                              <AlertTriangle className="h-3 w-3" />
-                              Delete forever
-                            </Button>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                )}
-              </ScrollArea>
-            </div>
-          ) : (
-            <NotesListSidebar
-              notes={filteredNotes}
-              selectedId={selectedId}
-              onSelect={handleSelect}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              categoryFilter={categoryFilter}
-              onCategoryChange={setCategoryFilter}
-              onNewNote={handleNewNote}
-              categories={categories}
-              loading={loading}
-              onDelete={handleDeleteNote}
-              onTrashToggle={toggleTrash}
-            />
-          )}
-        </div>
+      {/* Ambient orbs */}
+      <motion.div className="absolute -top-32 -right-32 size-96 rounded-full bg-emerald-500/[0.03] blur-3xl pointer-events-none" animate={{ scale: [1, 1.15, 1], rotate: [0, 30, 0] }} transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }} />
+      <motion.div className="absolute -bottom-32 -left-32 size-96 rounded-full bg-teal-500/[0.03] blur-3xl pointer-events-none" animate={{ scale: [1.1, 0.95, 1.1], rotate: [0, -30, 0] }} transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }} />
 
-        {/* Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-background to-muted/10">
-          {selectedId && activeNote ? (
+      <AnimatePresence mode="wait">
+        {selectedId ? (
+          <motion.div
+            key="editor"
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 60 }}
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="absolute inset-0 z-10 flex flex-col bg-[#0a0a0f]"
+          >
             <NoteEditor
               key={selectedId}
               note={editorNote}
               onUpdate={handleUpdate}
               onSave={handleSave}
               onDelete={handleDelete}
+              onBack={handleBackFromEditor}
               isNew={isNewNote}
               categories={categories}
             />
-          ) : (
-            <EmptySelectState />
-          )}
-        </div>
-      </div>
-
-      {/* Mobile Layout */}
-      <div className="flex flex-col h-full lg:hidden">
-        <Tabs value={mobileTab} onValueChange={setMobileTab} className="flex h-full flex-col gap-0">
-          <TabsList className="w-full rounded-none bg-muted/40 backdrop-blur-sm border-b border-border/20 p-0">
-            <TabsTrigger value="list" className="flex-1 text-[11px] sm:text-xs gap-1 sm:gap-1.5 rounded-none data-[state=active]:bg-background data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-emerald-500 py-2.5">
-              <FolderOpen className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-              Notes
-            </TabsTrigger>
-            <TabsTrigger value="editor" className="flex-1 text-[11px] sm:text-xs gap-1 sm:gap-1.5 rounded-none data-[state=active]:bg-background data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-emerald-500 py-2.5">
-              <PenLine className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-              Editor
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="list" className="flex-1 mt-2 overflow-hidden data-[state=inactive]:hidden">
-            {showTrash ? (
-              <div className="flex h-full flex-col px-3">
-                <div className="flex items-center justify-between px-1 pt-2 pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-rose-500 to-orange-600 shadow-md shadow-rose-500/20">
-                      <Trash2 className="h-3.5 w-3.5 text-white" />
-                    </div>
-                    <h2 className="text-sm font-bold tracking-tight">Trash</h2>
-                  </div>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={toggleTrash}>
-                    <PenLine className="h-3 w-3" />
-                    Back
-                  </Button>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="browse"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, x: -30 }}
+            transition={{ duration: 0.25 }}
+            className="flex flex-col w-full h-full"
+          >
+            {/* Top bar */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+              className="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-border/15"
+            >
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.05, duration: 0.4 }}
+                className="flex items-center gap-2.5"
+              >
+                <motion.div
+                  animate={{ rotate: [-2, 2, -2], scale: [1, 1.05, 1] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-md shadow-emerald-500/20"
+                >
+                  <PenLine className="h-4 w-4 text-white" />
+                </motion.div>
+                <h1 className="text-sm font-bold tracking-tight">Notes</h1>
+                <motion.span
+                  key={notes.length}
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 12 }}
+                  className="text-[10px] text-muted-foreground/40 bg-muted/30 px-1.5 py-0.5 rounded-md"
+                >
+                  {notes.length}
+                </motion.span>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1, duration: 0.4 }}
+                className="flex items-center gap-1.5"
+              >
+                <div className="relative hidden sm:block">
+                  <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/40" />
+                  <input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search notes..."
+                    className="h-8 w-36 lg:w-48 rounded-lg border border-border/20 bg-muted/20 pl-8 pr-3 text-[11px] outline-none focus:border-emerald-500/30 focus:bg-background transition-all placeholder:text-muted-foreground/40"
+                  />
                 </div>
-                <ScrollArea className="flex-1">
-                  {trashNotes.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-40 text-muted-foreground/50 text-xs gap-2">
-                      <Trash2 className="h-8 w-8 opacity-30" />
-                      <p>Trash is empty</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 pb-4">
-                      {trashNotes.map((note) => (
-                        <div key={note.id} className="rounded-xl border border-border/40 bg-card/40 p-3">
-                          <h3 className="text-sm font-semibold leading-snug line-clamp-1 text-muted-foreground/80">
-                            {note.title || <span className="italic text-muted-foreground/40">Untitled Note</span>}
-                          </h3>
-                          <div className="mt-2.5 flex items-center gap-2">
-                            <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1 text-emerald-600" onClick={() => handleRestore(note.id)}>
-                              <RotateCcw className="h-3 w-3" /> Restore
-                            </Button>
-                            <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1 text-rose-500" onClick={() => handlePermanentDelete(note.id)}>
-                              <AlertTriangle className="h-3 w-3" /> Delete forever
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-              </div>
-            ) : filteredNotes.length === 0 && !loading ? (
-              <EmptySearchState />
-            ) : (
-              <NotesListSidebar
-                notes={filteredNotes}
-                selectedId={selectedId}
-                onSelect={handleSelect}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                categoryFilter={categoryFilter}
-                onCategoryChange={setCategoryFilter}
-                onNewNote={handleNewNote}
-                categories={categories}
-                loading={loading}
-                onDelete={handleDeleteNote}
-                onTrashToggle={toggleTrash}
-              />
-            )}
-          </TabsContent>
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 10 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={toggleTrash}
+                  className="flex size-8 items-center justify-center rounded-lg text-muted-foreground/40 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+                  title="Trash"
+                >
+                  <Trash2 className="size-3.5" />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.92 }}
+                  onClick={handleNewNote}
+                  className="inline-flex items-center gap-1.5 h-8 rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:from-emerald-700 hover:to-emerald-600 text-[11px] font-medium px-3 shadow-lg shadow-emerald-500/20 transition-all"
+                >
+                  <motion.span
+                    animate={{ rotate: [0, 0, 0] }}
+                    whileHover={{ rotate: 90 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Plus className="size-3.5" />
+                  </motion.span>
+                  <span className="hidden sm:inline">New</span>
+                </motion.button>
+              </motion.div>
+            </motion.div>
 
-          <TabsContent value="editor" className="flex-1 mt-0 overflow-hidden flex flex-col data-[state=inactive]:hidden">
-            {selectedId && activeNote ? (
-              <NoteEditor
-                key={selectedId}
-                note={editorNote}
-                onUpdate={handleUpdate}
-                onSave={handleSave}
-                onDelete={handleDelete}
-                isNew={isNewNote}
-                categories={categories}
-              />
-            ) : (
-              <div className="flex-1 flex items-center justify-center min-h-[300px]">
-                <EmptySelectState />
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+            {/* Category filters */}
+            <div className="flex items-center gap-1.5 px-4 sm:px-6 py-2.5 overflow-x-auto scrollbar-none border-b border-border/10">
+              {allCategories.map((cat) => {
+                const isActive = categoryFilter === cat;
+                const isNoteCat = cat !== 'All';
+                const ccfg = isNoteCat ? getCategoryConfig(cat) : null;
+                return (
+                  <motion.button
+                    key={cat}
+                    layout
+                    onClick={() => setCategoryFilter(cat)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-all border whitespace-nowrap cursor-pointer ${
+                      isActive
+                        ? isNoteCat
+                          ? `${ccfg!.pillClass} shadow-sm border-current/30`
+                          : "bg-foreground text-background border-foreground shadow-sm"
+                        : "bg-muted/20 text-muted-foreground/60 border-border/15 hover:bg-muted/40 hover:text-foreground/80"
+                    }`}
+                    style={isActive && isNoteCat ? { boxShadow: `0 1px 3px 0 ${ccfg!.hex}1a` } as React.CSSProperties : undefined}
+                  >
+                    {isNoteCat && <span className={`size-1.5 rounded-full ${ccfg!.dotClass} ${isActive ? '' : 'opacity-40'}`} />}
+                    {cat}
+                  </motion.button>
+                );
+              })}
+            </div>
 
-      </div>
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto pt-6">
+              {loading ? (
+                <LoadingGrid />
+              ) : notes.length === 0 ? (
+                <EmptySelectState onNewNote={handleNewNote} />
+              ) : filteredNotes.length === 0 ? (
+                <EmptySearchState />
+              ) : (
+                <div className="p-4 sm:p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+                    {filteredNotes.map((note, index) => (
+                      <NoteGridCard
+                        key={note.id}
+                        note={note}
+                        index={index}
+                        onClick={() => handleSelect(note.id)}
+                        onDelete={handleDeleteNote}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Trash modal */}
+      <AnimatePresence>
+        {showTrash && (
+          <TrashOverlay
+            trashNotes={trashNotes}
+            onRestore={handleRestore}
+            onPermanentDelete={handlePermanentDelete}
+            onClose={toggleTrash}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

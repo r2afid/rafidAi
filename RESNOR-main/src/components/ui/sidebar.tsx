@@ -244,7 +244,7 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm shadow-[inset_0_1.5px_2.5px_-0.5px_rgb(0_0_0_/0.12),inset_-1px_0_2px_-0.5px_rgb(0_0_0_/0.08),inset_0_-0.75px_1px_0_rgb(0_0_0_/0.04),inset_1px_0_2px_-0.5px_rgb(0_0_0_/0.08)] dark:shadow-[inset_0_1.5px_2.5px_-0.5px_rgb(255_255_255_/0.05),inset_-1px_0_2px_-0.5px_rgb(255_255_255_/0.03),inset_0_-0.75px_1px_0_rgb(255_255_255_/0.015),inset_1px_0_2px_-0.5px_rgb(255_255_255_/0.03)]"
         >
           {children}
         </div>

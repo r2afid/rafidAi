@@ -28,9 +28,6 @@ export type PageKey =
 interface AppState {
   activePage: PageKey
   setActivePage: (page: PageKey) => void
-  sidebarOpen: boolean
-  setSidebarOpen: (open: boolean) => void
-  toggleSidebar: () => void
   currentUser: {
     id: string
     name: string
@@ -76,10 +73,7 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       activePage: 'dashboard',
-      setActivePage: (page) => set({ activePage: page, sidebarOpen: false }),
-      sidebarOpen: false,
-      setSidebarOpen: (open) => set({ sidebarOpen: open }),
-      toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+      setActivePage: (page) => set({ activePage: page }),
       currentUser: null,
       setCurrentUser: (user) => set({ currentUser: user }),
       breakReminder: { show: false, autoStartLongBreak: false },
@@ -102,7 +96,6 @@ export const useAppStore = create<AppState>()(
       name: 'app-storage',
       partialize: (state) => ({
         activePage: state.activePage,
-        sidebarOpen: state.sidebarOpen,
       }),
     }
   )
