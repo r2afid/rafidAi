@@ -11,6 +11,8 @@ import Gamification from '@/components/gamification/Gamification'
 import Notifications from '@/components/notifications/Notifications'
 import TeacherNotifications from '@/components/notifications/TeacherNotifications'
 import TeacherDashboard from '@/components/teacher/TeacherDashboard'
+import CourseManager from '@/components/teacher/CourseManager'
+import QuizManager from '@/components/teacher/QuizManager'
 import Wellbeing from '@/components/wellbeing/Wellbeing'
 import PomodoroTimer from '@/components/pomodoro/PomodoroTimer'
 import ExamRoutine from '@/components/tools/ExamRoutine'
@@ -57,6 +59,8 @@ export const navItems: NavItem[] = [
   { key: 'gamification', label: 'Gamification', icon: Trophy, group: 'Progress' },
   { key: 'notifications', label: 'Notifications', icon: Bell, group: 'System' },
   { key: 'teacher', label: 'Teacher Dashboard', icon: GraduationCap, group: 'Admin' },
+  { key: 'course-manager', label: 'Course Manager', icon: BookOpen, group: 'Admin' },
+  { key: 'quiz-manager', label: 'Quiz Manager', icon: Brain, group: 'Admin' },
   { key: 'wellbeing', label: 'Wellbeing Support', icon: Shield, group: 'Wellbeing' },
   { key: 'pomodoro', label: 'Pomodoro Timer', icon: Timer, group: 'Tools' },
   { key: 'exam-routine', label: 'Exam Routine', icon: CalendarDays, group: 'Tools' },
@@ -82,6 +86,8 @@ export const pageLabels = (isTeacher: boolean): Record<PageKey, string> => ({
   'gamification': 'Gamified Progress',
   'notifications': isTeacher ? 'Teacher Notifications' : 'Smart Notifications',
   'teacher': 'Teacher Dashboard',
+  'course-manager': 'Course Manager',
+  'quiz-manager': 'Quiz Manager',
   'wellbeing': 'AI Wellbeing Support',
   'pomodoro': 'Pomodoro Timer',
   'exam-routine': 'Exam Routine',
@@ -107,6 +113,8 @@ export const pageComponents: Record<PageKey, React.ComponentType> = {
   'gamification': Gamification,
   'notifications': Notifications,
   'teacher': TeacherDashboard,
+  'course-manager': CourseManager,
+  'quiz-manager': QuizManager,
   'wellbeing': Wellbeing,
   'pomodoro': PomodoroTimer,
   'exam-routine': ExamRoutine,

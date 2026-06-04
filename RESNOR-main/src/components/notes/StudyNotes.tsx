@@ -27,6 +27,7 @@ import {
   AlertTriangle,
   ArrowLeft,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth";
 import { useAppStore } from "@/stores/app";
 

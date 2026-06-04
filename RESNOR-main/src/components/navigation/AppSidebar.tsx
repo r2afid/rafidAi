@@ -180,8 +180,8 @@ export function AppSidebar() {
 
   const isTeacher = currentUser?.role === 'teacher'
   const filteredNavItems = isTeacher
-    ? navItems.filter(n => n.key === 'teacher' || n.key === 'profile' || n.key === 'notifications')
-    : navItems.filter(n => n.key !== 'teacher')
+    ? navItems.filter(n => n.key === 'teacher' || n.key === 'course-manager' || n.key === 'quiz-manager' || n.key === 'profile' || n.key === 'notifications')
+    : navItems.filter(n => n.key !== 'teacher' && n.key !== 'course-manager' && n.key !== 'quiz-manager')
   const groups = [...new Set(filteredNavItems.map(n => n.group))]
 
   return (

@@ -80,6 +80,24 @@ export default function Home() {
     hydrate()
   }, [hydrate])
 
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      const authUser = useAuthStore.getState().user
+      if (authUser) {
+        const store = useAppStore.getState()
+        if (store.currentUser?.id !== authUser.id) {
+          store.setCurrentUser({
+            id: authUser.id,
+            name: authUser.name || 'User',
+            email: authUser.email,
+            role: authUser.role,
+            avatar: authUser.avatar,
+          })
+        }
+      }
+    }
+  }, [isLoading, isAuthenticated])
+
   useTelemetry()
 
   if (!mounted || isLoading) {
@@ -105,7 +123,7 @@ export default function Home() {
 
   const isTeacher = currentUser?.role === 'teacher'
   const resolvedPage = isTeacher
-    ? (activePage !== 'teacher' && activePage !== 'profile' && activePage !== 'notifications' ? 'teacher' : activePage)
+    ? (activePage !== 'teacher' && activePage !== 'profile' && activePage !== 'notifications' && activePage !== 'course-manager' && activePage !== 'quiz-manager' ? 'teacher' : activePage)
     : (activePage === 'teacher' ? 'dashboard' : activePage)
   const ActiveComponent = isTeacher && resolvedPage === 'notifications'
     ? teacherPageComponents['notifications']

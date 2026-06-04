@@ -18,6 +18,8 @@ import {
   ListChecks,
   Filter,
   X,
+  Lock,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +44,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/stores/auth";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -60,6 +63,7 @@ interface Course {
   reviewCount: number;
   description: string;
   syllabus: string[];
+  topicIds: string[];
   prerequisites: string[];
   thumbnail: string;
   isEnrolled: boolean;
@@ -70,262 +74,7 @@ interface Course {
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
 
-const MOCK_COURSES: Course[] = [
-  {
-    id: "cse-331",
-    code: "CSE-331",
-    title: "Data Structures & Algorithms",
-    instructor: "Prof. Karim",
-    category: "Core",
-    difficulty: "Advanced",
-    duration: "14 weeks",
-    enrolledCount: 234,
-    rating: 4.8,
-    reviewCount: 56,
-    description:
-      "Master fundamental data structures including trees, graphs, heaps, and hash tables. Learn advanced algorithm design techniques such as dynamic programming, greedy algorithms, and divide-and-conquer. Build a strong foundation for technical interviews and competitive programming.",
-    syllabus: [
-      "Week 1-2: Arrays, Linked Lists & Stacks",
-      "Week 3-4: Trees & Binary Search Trees",
-      "Week 5-6: Heaps & Priority Queues",
-      "Week 7-8: Graph Algorithms (BFS, DFS)",
-      "Week 9-10: Shortest Path & Minimum Spanning Tree",
-      "Week 11-12: Dynamic Programming",
-      "Week 13-14: Advanced Topics & Review",
-    ],
-    prerequisites: ["CSE-115 Programming Fundamentals", "Basic discrete mathematics"],
-    thumbnail: "/placeholder-dsa.jpg",
-    isEnrolled: true,
-    progress: 65,
-    reviews: [
-      { author: "Rafi Ahmed", rating: 5, comment: "Excellent course! Prof. Karim explains complex topics very clearly.", date: "2025-02-10" },
-      { author: "Nusrat Jahan", rating: 4, comment: "Challenging but rewarding. Great problem sets.", date: "2025-01-28" },
-    ],
-    relatedCourseIds: ["cse-421", "cse-441"],
-  },
-  {
-    id: "cse-421",
-    code: "CSE-421",
-    title: "Artificial Intelligence",
-    instructor: "Prof. Rahman",
-    category: "Specialization",
-    difficulty: "Intermediate",
-    duration: "14 weeks",
-    enrolledCount: 189,
-    rating: 4.6,
-    reviewCount: 42,
-    description:
-      "Explore the core concepts of artificial intelligence including search algorithms, knowledge representation, machine learning basics, and natural language processing. Hands-on projects with Python implementations of classic AI algorithms.",
-    syllabus: [
-      "Week 1-2: Introduction to AI & Intelligent Agents",
-      "Week 3-4: Search Algorithms (A*, Minimax)",
-      "Week 5-6: Knowledge Representation & Reasoning",
-      "Week 7-8: Machine Learning Fundamentals",
-      "Week 9-10: Neural Networks & Deep Learning Intro",
-      "Week 11-12: Natural Language Processing",
-      "Week 13-14: AI Ethics & Final Project",
-    ],
-    prerequisites: ["CSE-331 Data Structures & Algorithms", "Basic probability & statistics"],
-    thumbnail: "/placeholder-ai.jpg",
-    isEnrolled: true,
-    progress: 30,
-    reviews: [
-      { author: "Tanvir Hasan", rating: 5, comment: "Fascinating content. The AI project was my favorite part.", date: "2025-03-01" },
-      { author: "Farhana Islam", rating: 4, comment: "Good overview of AI concepts with practical exercises.", date: "2025-02-15" },
-    ],
-    relatedCourseIds: ["cse-441", "cse-331"],
-  },
-  {
-    id: "cse-225",
-    code: "CSE-225",
-    title: "Database Systems",
-    instructor: "Prof. Haque",
-    category: "Core",
-    difficulty: "Beginner",
-    duration: "12 weeks",
-    enrolledCount: 312,
-    rating: 4.5,
-    reviewCount: 78,
-    description:
-      "Learn the principles of database management systems including relational models, SQL, normalization, transaction management, and indexing. Practical labs using PostgreSQL and MySQL with real-world dataset projects.",
-    syllabus: [
-      "Week 1-2: Introduction & ER Model",
-      "Week 3-4: Relational Algebra & SQL Basics",
-      "Week 5-6: Advanced SQL & Views",
-      "Week 7-8: Normalization (1NF to BCNF)",
-      "Week 9-10: Transaction Management & Concurrency",
-      "Week 11-12: Indexing & Final Project",
-    ],
-    prerequisites: ["CSE-115 Programming Fundamentals"],
-    thumbnail: "/placeholder-db.jpg",
-    isEnrolled: false,
-    progress: 0,
-    reviews: [
-      { author: "Sakib Uddin", rating: 5, comment: "Very practical approach to databases. Loved the SQL labs!", date: "2025-02-20" },
-      { author: "Mitu Akter", rating: 4, comment: "Solid foundation course. Well-structured content.", date: "2025-01-30" },
-    ],
-    relatedCourseIds: ["cse-331", "cse-311"],
-  },
-  {
-    id: "cse-412",
-    code: "CSE-412",
-    title: "Computer Networks",
-    instructor: "Prof. Islam",
-    category: "Core",
-    difficulty: "Advanced",
-    duration: "14 weeks",
-    enrolledCount: 156,
-    rating: 4.3,
-    reviewCount: 34,
-    description:
-      "Deep dive into computer networking from physical layer to application layer. Covers TCP/IP protocol suite, network security, routing algorithms, and modern networking technologies including SDN and cloud networking.",
-    syllabus: [
-      "Week 1-2: Network Models & Physical Layer",
-      "Week 3-4: Data Link Layer & Error Detection",
-      "Week 5-6: Network Layer & IP Addressing",
-      "Week 7-8: Routing Algorithms (OSPF, BGP)",
-      "Week 9-10: Transport Layer (TCP/UDP)",
-      "Week 11-12: Application Layer Protocols",
-      "Week 13-14: Network Security & Final Project",
-    ],
-    prerequisites: ["CSE-225 Database Systems", "CSE-331 Data Structures & Algorithms"],
-    thumbnail: "/placeholder-net.jpg",
-    isEnrolled: false,
-    progress: 0,
-    reviews: [
-      { author: "Arif Khan", rating: 4, comment: "Comprehensive coverage of networking concepts.", date: "2025-02-25" },
-    ],
-    relatedCourseIds: ["cse-315", "cse-331"],
-  },
-  {
-    id: "cse-311",
-    code: "CSE-311",
-    title: "Software Engineering",
-    instructor: "Prof. Chowdhury",
-    category: "Core",
-    difficulty: "Intermediate",
-    duration: "12 weeks",
-    enrolledCount: 278,
-    rating: 4.7,
-    reviewCount: 61,
-    description:
-      "Learn software development methodologies, requirements engineering, system design, testing strategies, and project management. Apply agile and DevOps practices in a semester-long team project with real-world constraints.",
-    syllabus: [
-      "Week 1-2: Software Process Models",
-      "Week 3-4: Requirements Engineering",
-      "Week 5-6: System Design & Architecture",
-      "Week 7-8: Object-Oriented Design Patterns",
-      "Week 9-10: Testing & Quality Assurance",
-      "Week 11-12: DevOps & Team Project Presentations",
-    ],
-    prerequisites: ["CSE-225 Database Systems", "CSE-115 Programming Fundamentals"],
-    thumbnail: "/placeholder-se.jpg",
-    isEnrolled: true,
-    progress: 90,
-    reviews: [
-      { author: "Sadia Afrin", rating: 5, comment: "The team project was an incredible learning experience!", date: "2025-03-05" },
-      { author: "Imran Hossain", rating: 5, comment: "Prof. Chowdhury brings real industry experience to the class.", date: "2025-02-18" },
-    ],
-    relatedCourseIds: ["cse-315", "cse-225"],
-  },
-  {
-    id: "cse-115",
-    code: "CSE-115",
-    title: "Programming Fundamentals",
-    instructor: "Prof. Akter",
-    category: "Foundation",
-    difficulty: "Beginner",
-    duration: "14 weeks",
-    enrolledCount: 420,
-    rating: 4.9,
-    reviewCount: 112,
-    description:
-      "Start your programming journey with Python. Learn variables, control flow, functions, data structures, file I/O, and object-oriented programming. Includes 50+ coding exercises and a final capstone project to build a complete application.",
-    syllabus: [
-      "Week 1-2: Introduction to Python & Variables",
-      "Week 3-4: Control Flow & Functions",
-      "Week 5-6: Lists, Tuples & Dictionaries",
-      "Week 7-8: File I/O & Exception Handling",
-      "Week 9-10: Object-Oriented Programming",
-      "Week 11-12: Modules & Libraries",
-      "Week 13-14: Capstone Project & Review",
-    ],
-    prerequisites: [],
-    thumbnail: "/placeholder-pf.jpg",
-    isEnrolled: false,
-    progress: 0,
-    reviews: [
-      { author: "Riya Sen", rating: 5, comment: "Perfect for absolute beginners! Prof. Akter is amazing.", date: "2025-03-10" },
-      { author: "Habib Mia", rating: 5, comment: "This course sparked my love for programming.", date: "2025-02-28" },
-      { author: "Nadia Rahman", rating: 5, comment: "Best introductory CS course I have taken.", date: "2025-01-15" },
-    ],
-    relatedCourseIds: ["cse-225", "cse-331"],
-  },
-  {
-    id: "cse-441",
-    code: "CSE-441",
-    title: "Machine Learning",
-    instructor: "Prof. Das",
-    category: "Specialization",
-    difficulty: "Advanced",
-    duration: "14 weeks",
-    enrolledCount: 145,
-    rating: 4.4,
-    reviewCount: 28,
-    description:
-      "Explore supervised and unsupervised learning algorithms including linear regression, logistic regression, SVMs, decision trees, random forests, neural networks, and clustering. Implement algorithms from scratch and using scikit-learn and TensorFlow.",
-    syllabus: [
-      "Week 1-2: Linear Regression & Gradient Descent",
-      "Week 3-4: Logistic Regression & Classification",
-      "Week 5-6: Support Vector Machines",
-      "Week 7-8: Decision Trees & Ensemble Methods",
-      "Week 9-10: Neural Networks Fundamentals",
-      "Week 11-12: Unsupervised Learning (K-Means, PCA)",
-      "Week 13-14: Model Evaluation & Final Project",
-    ],
-    prerequisites: ["CSE-331 Data Structures & Algorithms", "CSE-421 Artificial Intelligence", "Linear algebra & statistics"],
-    thumbnail: "/placeholder-ml.jpg",
-    isEnrolled: false,
-    progress: 0,
-    reviews: [
-      { author: "Zahid Islam", rating: 4, comment: "Rigorous mathematical approach. Definitely worth the effort.", date: "2025-02-22" },
-    ],
-    relatedCourseIds: ["cse-421", "cse-331"],
-  },
-  {
-    id: "cse-315",
-    code: "CSE-315",
-    title: "Web Technologies",
-    instructor: "Prof. Begum",
-    category: "Specialization",
-    difficulty: "Intermediate",
-    duration: "12 weeks",
-    enrolledCount: 198,
-    rating: 4.6,
-    reviewCount: 45,
-    description:
-      "Build modern web applications from the ground up. Covers HTML5, CSS3, JavaScript ES6+, React, Node.js, RESTful APIs, and deployment. Weekly hands-on labs culminating in a full-stack portfolio project.",
-    syllabus: [
-      "Week 1-2: HTML5 & CSS3 Fundamentals",
-      "Week 3-4: JavaScript ES6+ & DOM Manipulation",
-      "Week 5-6: React Components & State Management",
-      "Week 7-8: Node.js & Express Backend",
-      "Week 9-10: RESTful API Design & Databases",
-      "Week 11-12: Deployment & Portfolio Project",
-    ],
-    prerequisites: ["CSE-115 Programming Fundamentals"],
-    thumbnail: "/placeholder-web.jpg",
-    isEnrolled: true,
-    progress: 45,
-    reviews: [
-      { author: "Fahim Shahriar", rating: 5, comment: "Hands-down the most practical course. Built my first full-stack app!", date: "2025-03-08" },
-      { author: "Tania Akter", rating: 4, comment: "Great pace and modern tech stack.", date: "2025-02-14" },
-    ],
-    relatedCourseIds: ["cse-311", "cse-412"],
-  },
-];
-
-const FEATURED_COURSE_ID = "cse-421";
+const FEATURED_COURSE_ID = "";
 
 const CATEGORIES = ["All", "Core", "Specialization", "Foundation"];
 const DIFFICULTIES: ("All" | Difficulty)[] = ["All", "Beginner", "Intermediate", "Advanced"];
@@ -389,6 +138,31 @@ function RatingStars({ rating, size = "sm" }: { rating: number; size?: "sm" | "l
               : "fill-transparent text-muted-foreground/30"
           )}
         />
+      ))}
+    </div>
+  );
+}
+
+function RatingInput({ value, onChange, disabled }: { value: number; onChange: (v: number) => void; disabled?: boolean }) {
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(star)}
+          className="focus:outline-none disabled:opacity-50"
+        >
+          <Star
+            className={cn(
+              "h-6 w-6 transition-all",
+              star <= value
+                ? "fill-amber-400 text-amber-400"
+                : "fill-transparent text-muted-foreground/30 hover:text-amber-400/60"
+            )}
+          />
+        </button>
       ))}
     </div>
   );
@@ -506,32 +280,25 @@ function CourseCard({
 
           {/* Actions */}
           <div className="flex gap-2 pt-1">
-            <Button
-              variant={course.isEnrolled ? "secondary" : "default"}
-              size="sm"
-              className={cn(
-                "flex-1 text-xs",
-                course.isEnrolled
-                  ? "text-rose-600 hover:text-rose-700 hover:bg-rose-500/10 dark:text-rose-400 dark:hover:text-rose-300"
-                  : "bg-emerald-600 hover:bg-emerald-700 text-white"
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleEnroll(course.id);
-              }}
-            >
-              {course.isEnrolled ? (
-                <>
-                  <Circle className="h-3 w-3" />
-                  Unenroll
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-3 w-3" />
-                  Enroll Now
-                </>
-              )}
-            </Button>
+            {course.isEnrolled ? (
+              <span className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-500 border border-emerald-500/20">
+                <CheckCircle2 className="h-3 w-3" />
+                Enrolled
+              </span>
+            ) : (
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-1 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleEnroll(course.id);
+                }}
+              >
+                <CheckCircle2 className="h-3 w-3" />
+                Enroll Now
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -648,6 +415,94 @@ function CourseDetailSheet({
   onToggleEnroll: (courseId: string) => void;
   allCourses: Course[];
 }) {
+  const [topicProgress, setTopicProgress] = useState<Record<string, boolean>>({});
+  const [loadingProgress, setLoadingProgress] = useState(true);
+  const [reviews, setReviews] = useState<Course['reviews']>([]);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [canReview, setCanReview] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(false);
+  const [reviewProgress, setReviewProgress] = useState(0);
+
+  const completedTopics = Object.values(topicProgress).filter(Boolean).length;
+  const totalTopics = course?.topicIds.length || 0;
+  const topicProgressPercent = totalTopics > 0 ? (completedTopics / totalTopics) * 100 : 0;
+
+  useEffect(() => {
+    if (!course || !course?.isEnrolled) {
+      setTopicProgress({});
+      return;
+    }
+    setLoadingProgress(true);
+    fetch(`/api/courses/progress?courseId=${course.id}&student_id=`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.progress) setTopicProgress(data.progress);
+      })
+      .catch(console.error)
+      .finally(() => setLoadingProgress(false));
+  }, [open, course?.id, course?.isEnrolled]);
+
+  useEffect(() => {
+    if (!course) return;
+    fetch(`/api/courses/reviews?courseId=${course.id}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.reviews) setReviews(data.reviews);
+        setCanReview(data.canReview ?? false);
+        setHasReviewed(data.hasReviewed ?? false);
+        setReviewProgress(data.reviewProgress ?? 0);
+      })
+      .catch(console.error);
+  }, [course?.id, open]);
+
+  const handleSubmitReview = useCallback(async () => {
+    if (!reviewRating || !course) return;
+    setSubmittingReview(true);
+    setReviewError(null);
+    try {
+      const res = await fetch('/api/courses/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId: course.id, rating: reviewRating, comment: reviewComment }),
+      })
+      const data = await res.json()
+      if (data.error) {
+        setReviewError(data.error)
+      } else if (data.review) {
+        setReviews(prev => [data.review, ...prev])
+        setHasReviewed(true)
+        setCanReview(false)
+        setReviewRating(0)
+        setReviewComment('')
+      }
+    } catch {
+      setReviewError('Network error')
+    } finally {
+      setSubmittingReview(false)
+    }
+  }, [reviewRating, reviewComment, course]);
+
+  const toggleTopic = useCallback(async (topicId: string, current: boolean) => {
+    const optimistic = !current;
+    setTopicProgress((prev) => ({ ...prev, [topicId]: optimistic }));
+    try {
+      await fetch('/api/courses/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topicId,
+          courseId: course!.id,
+          completed: optimistic,
+        }),
+      });
+    } catch {
+      setTopicProgress((prev) => ({ ...prev, [topicId]: current }));
+    }
+  }, [course]);
+
   if (!course) return null;
 
   const diffColors = DIFFICULTY_COLORS[course.difficulty];
@@ -719,13 +574,18 @@ function CourseDetailSheet({
                     Your Progress
                   </h4>
                   <span className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                    {course.progress}%
+                    {Math.round(topicProgressPercent)}%
                   </span>
                 </div>
                 <Progress
-                  value={course.progress}
+                  value={topicProgressPercent}
                   className="h-2.5 [&>[data-slot=progress-indicator]]:bg-emerald-500"
                 />
+                {topicProgressPercent >= 80 && !hasReviewed && (
+                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1">
+                    You can now leave a review!
+                  </p>
+                )}
               </div>
             )}
 
@@ -735,24 +595,51 @@ function CourseDetailSheet({
                 <ListChecks className="h-4 w-4 text-teal-500" />
                 Course Syllabus
               </h4>
-              <div className="space-y-1.5">
-                {course.syllabus.map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex items-start gap-2 text-sm text-muted-foreground"
-                  >
-                    <div
-                      className={cn(
-                        "mt-1.5 h-1.5 w-1.5 rounded-full shrink-0",
-                        course.isEnrolled && course.progress > (i / course.syllabus.length) * 100
-                          ? "bg-emerald-500"
-                          : "bg-muted-foreground/30"
-                      )}
-                    />
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
+              {course.isEnrolled && loadingProgress ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Loading progress...
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {course.syllabus.map((item, i) => {
+                    const topicId = course.topicIds[i];
+                    const completed = topicProgress[topicId] ?? false;
+                    return (
+                      <div
+                        key={i}
+                        className={cn(
+                          "flex items-start gap-2 text-sm",
+                          completed ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
+                        )}
+                      >
+                        {course.isEnrolled && topicId ? (
+                          <button
+                            onClick={() => toggleTopic(topicId, completed)}
+                            className="mt-0.5 shrink-0 focus:outline-none"
+                          >
+                            {completed ? (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                            ) : (
+                              <Circle className="h-4 w-4 text-muted-foreground/50" />
+                            )}
+                          </button>
+                        ) : (
+                          <div
+                            className={cn(
+                              "mt-1.5 h-1.5 w-1.5 rounded-full shrink-0",
+                              course.progress > (i / course.syllabus.length) * 100
+                                ? "bg-emerald-500"
+                                : "bg-muted-foreground/30"
+                            )}
+                          />
+                        )}
+                        <span className={cn(completed && "line-through")}>{item}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <Separator />
@@ -780,8 +667,59 @@ function CourseDetailSheet({
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                 Student Reviews
               </h4>
+
+              {/* Review submission */}
+              {course.isEnrolled && canReview && (
+                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-3">
+                  <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                    You've completed {Math.round(topicProgressPercent)}% — leave a review!
+                  </p>
+                  <div>
+                    <RatingInput value={reviewRating} onChange={setReviewRating} />
+                  </div>
+                  <textarea
+                    placeholder="Share your thoughts about this course..."
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    className="w-full min-h-[60px] rounded-md border border-border bg-background p-2 text-xs resize-none focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    rows={3}
+                  />
+                  {reviewError && (
+                    <p className="text-xs text-rose-500">{reviewError}</p>
+                  )}
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={handleSubmitReview}
+                      disabled={!reviewRating || submittingReview}
+                      className="gap-1 h-7 text-xs"
+                    >
+                      {submittingReview ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <Star className="size-3" />
+                      )}
+                      Submit Review
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {course.isEnrolled && hasReviewed && (
+                <p className="text-xs text-muted-foreground italic">You have reviewed this course.</p>
+              )}
+
+              {course.isEnrolled && !canReview && !hasReviewed && topicProgressPercent > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Complete {80 - Math.round(topicProgressPercent)}% more to leave a review.
+                </p>
+              )}
+
               <div className="space-y-3">
-                {course.reviews.map((review, i) => (
+                {reviews.length === 0 && (
+                  <p className="text-xs text-muted-foreground">No reviews yet.</p>
+                )}
+                {reviews.map((review, i) => (
                   <div key={i} className="rounded-lg border p-3 space-y-1.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -845,33 +783,30 @@ function CourseDetailSheet({
 
             {/* Enroll CTA */}
             <div className="pt-2 pb-6">
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button
-                  size="lg"
-                  className={cn(
-                    "w-full font-semibold",
-                    course.isEnrolled
-                      ? "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 border border-rose-500/20 dark:text-rose-400"
-                      : "bg-emerald-600 hover:bg-emerald-700 text-white"
-                  )}
-                  onClick={() => {
-                    onToggleEnroll(course.id);
-                    onOpenChange(false);
-                  }}
-                >
-                  {course.isEnrolled ? (
-                    <>
-                      <Circle className="h-4 w-4" />
-                      Unenroll from Course
-                    </>
-                  ) : (
-                    <>
+              {course.isEnrolled ? (
+                <motion.div whileHover={{ scale: 1.02 }}>
+                  <div className="w-full rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 text-center">
+                    <span className="inline-flex items-center gap-2 text-emerald-500 font-semibold">
                       <CheckCircle2 className="h-4 w-4" />
-                      Enroll in This Course
-                    </>
-                  )}
-                </Button>
-              </motion.div>
+                      Enrolled
+                    </span>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    size="lg"
+                    className="w-full font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+                    onClick={() => {
+                      onToggleEnroll(course.id);
+                      onOpenChange(false);
+                    }}
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Enroll in This Course
+                  </Button>
+                </motion.div>
+              )}
             </div>
           </div>
         </ScrollArea>
@@ -953,15 +888,20 @@ function EmptyState({ searchQuery }: { searchQuery: string }) {
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function CourseCatalog() {
-  const [courses, setCourses] = useState<Course[]>(MOCK_COURSES);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedDifficulty, setSelectedDifficulty] = useState("All");
   const [sortBy, setSortBy] = useState<string>("popular");
+  const [showEnrolledOnly, setShowEnrolledOnly] = useState(false);
   const [detailCourse, setDetailCourse] = useState<Course | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [showEnrollKeyDialog, setShowEnrollKeyDialog] = useState<string | null>(null);
+  const [enrollKeyInput, setEnrollKeyInput] = useState("");
+  const [enrollingWithKey, setEnrollingWithKey] = useState(false);
+  const [enrollKeyError, setEnrollKeyError] = useState<string | null>(null);
 
-  // Fetch real course data from API and merge with mock data
+  // Fetch real course data from API
   useEffect(() => {
     const studentId = new URLSearchParams(window.location.search).get('student_id') || ''
     fetch(`/api/courses${studentId ? `?student_id=${studentId}` : ''}`)
@@ -969,40 +909,32 @@ export default function CourseCatalog() {
       .then(res => {
         if (res.error || !res.courses?.length) return
         const apiCourses: Course[] = res.courses.map((c: any) => {
-          const mock = MOCK_COURSES.find(m => m.code === c.code)
           const totalMaterials = c.topics?.reduce((s: number, t: any) => s + (t._count?.materials || t.materials?.length || 0), 0) || 0
           return {
             id: c.id,
             code: c.code,
             title: c.name,
-            instructor: mock?.instructor || 'Instructor',
-            category: mock?.category || 'General',
-            difficulty: (mock?.difficulty || 'Beginner') as Difficulty,
-            duration: mock?.duration || `${totalMaterials * 30} min`,
+            instructor: c.instructor || 'Instructor',
+            category: c.category || 'General',
+            difficulty: (c.difficulty || 'Beginner') as Difficulty,
+            duration: `${totalMaterials * 30} min`,
             enrolledCount: c._count?.enrollments || 0,
-            rating: mock?.rating || 0,
-            reviewCount: mock?.reviewCount || 0,
+            rating: c.rating || 0,
+            reviewCount: c.reviewCount || 0,
             description: c.description || '',
             syllabus: c.topics?.map((t: any) => t.name) || [],
-            prerequisites: mock?.prerequisites || [],
-            thumbnail: mock?.thumbnail || '',
+            topicIds: c.topics?.map((t: any) => t.id) || [],
+            prerequisites: c.prerequisites ? [c.prerequisites] : [],
+            thumbnail: c.thumbnail || '',
             isEnrolled: c.isEnrolled || false,
             progress: c.progress || 0,
-            reviews: mock?.reviews || [],
-            relatedCourseIds: mock?.relatedCourseIds || [],
+            reviews: c.reviews || [],
+            relatedCourseIds: c.relatedCourseIds || [],
           }
         })
-        setCourses(prev => {
-          const merged = [...apiCourses]
-          for (const mock of MOCK_COURSES) {
-            if (!apiCourses.find(a => a.code === mock.code)) {
-              merged.push(mock)
-            }
-          }
-          return merged
-        })
+        setCourses(apiCourses)
       })
-      .catch(() => {}) // fallback to mock data
+      .catch(() => {})
   }, [])
 
   const featuredCourse = useMemo(
@@ -1036,6 +968,11 @@ export default function CourseCatalog() {
       result = result.filter((c) => c.difficulty === selectedDifficulty);
     }
 
+    // Enrolled-only filter
+    if (showEnrolledOnly) {
+      result = result.filter((c) => c.isEnrolled);
+    }
+
     // Sort
     switch (sortBy) {
       case "popular":
@@ -1053,15 +990,16 @@ export default function CourseCatalog() {
     }
 
     return result;
-  }, [courses, searchQuery, selectedCategory, selectedDifficulty, sortBy]);
+  }, [courses, searchQuery, selectedCategory, selectedDifficulty, sortBy, showEnrolledOnly]);
 
   const hasActiveFilters =
-    searchQuery.trim() !== "" || selectedCategory !== "All" || selectedDifficulty !== "All";
+    searchQuery.trim() !== "" || selectedCategory !== "All" || selectedDifficulty !== "All" || showEnrolledOnly;
 
   const clearFilters = useCallback(() => {
     setSearchQuery("");
     setSelectedCategory("All");
     setSelectedDifficulty("All");
+    setShowEnrolledOnly(false);
   }, []);
 
   const handleOpenDetail = useCallback((course: Course) => {
@@ -1070,19 +1008,76 @@ export default function CourseCatalog() {
   }, []);
 
   const handleToggleEnroll = useCallback((courseId: string) => {
-    setCourses((prev) =>
-      prev.map((c) => {
-        if (c.id !== courseId) return c;
-        const wasEnrolled = c.isEnrolled;
-        return {
-          ...c,
-          isEnrolled: !wasEnrolled,
-          progress: wasEnrolled ? 0 : 0,
-          enrolledCount: wasEnrolled ? c.enrolledCount - 1 : c.enrolledCount + 1,
-        };
-      })
-    );
-  }, []);
+    const course = courses.find(c => c.id === courseId);
+    if (!course) return;
+
+    // Already enrolled — no unenroll allowed
+    if (course.isEnrolled) return;
+
+    // Show enrollment key dialog
+    setShowEnrollKeyDialog(courseId);
+    setEnrollKeyInput("");
+    setEnrollKeyError(null);
+  }, [courses]);
+
+  const handleEnrollWithKey = useCallback(async () => {
+    const courseId = showEnrollKeyDialog;
+    if (!courseId || !enrollKeyInput.trim()) return;
+    setEnrollingWithKey(true);
+    setEnrollKeyError(null);
+
+    try {
+      const { token } = useAuthStore.getState();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const studentId = new URLSearchParams(window.location.search).get('student_id') || '';
+      const res = await fetch('/api/courses/enroll', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ courseId, studentId, enrollmentKey: enrollKeyInput.trim() }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setEnrollKeyError(data.error);
+      } else {
+        const res2 = await fetch('/api/courses');
+        const data2 = await res2.json();
+        if (data2.courses) {
+          const apiCourses: Course[] = data2.courses.map((c: any) => {
+            const totalMaterials = c.topics?.reduce((s: number, t: any) => s + (t._count?.materials || t.materials?.length || 0), 0) || 0
+            return {
+              id: c.id,
+              code: c.code,
+              title: c.name,
+              instructor: c.instructor || 'Instructor',
+              category: c.category || 'General',
+              difficulty: (c.difficulty || 'Beginner') as Difficulty,
+              duration: `${totalMaterials * 30} min`,
+              enrolledCount: c._count?.enrollments || 0,
+              rating: c.rating || 0,
+              reviewCount: c.reviewCount || 0,
+              description: c.description || '',
+              syllabus: c.topics?.map((t: any) => t.name) || [],
+              topicIds: c.topics?.map((t: any) => t.id) || [],
+              prerequisites: c.prerequisites ? [c.prerequisites] : [],
+              thumbnail: c.thumbnail || '',
+              isEnrolled: c.isEnrolled || false,
+              progress: c.progress || 0,
+              reviews: c.reviews || [],
+              relatedCourseIds: c.relatedCourseIds || [],
+            }
+          })
+          setCourses(apiCourses)
+        }
+        setShowEnrollKeyDialog(null);
+        setEnrollKeyInput("");
+      }
+    } catch {
+      setEnrollKeyError('Network error. Please try again.');
+    } finally {
+      setEnrollingWithKey(false);
+    }
+  }, [showEnrollKeyDialog, enrollKeyInput]);
 
   return (
     <div className="space-y-6">
@@ -1105,7 +1100,7 @@ export default function CourseCatalog() {
       <StatsSummary courses={courses} />
 
       {/* Featured Course Banner */}
-      <FeaturedBanner course={featuredCourse} onEnroll={handleToggleEnroll} />
+      {featuredCourse && <FeaturedBanner course={featuredCourse} onEnroll={handleToggleEnroll} />}
 
       {/* Search & Filter Bar */}
       <motion.div
@@ -1201,6 +1196,22 @@ export default function CourseCatalog() {
           </div>
         </div>
 
+        {/* Enrolled-only toggle */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowEnrolledOnly((v) => !v)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all",
+              showEnrolledOnly
+                ? "bg-emerald-600 text-white shadow-sm"
+                : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+            )}
+          >
+            <CheckCircle2 className="h-3 w-3" />
+            Enrolled
+          </button>
+        </div>
+
         {/* Active filter indicator */}
         {hasActiveFilters && (
           <div className="flex items-center gap-2">
@@ -1256,6 +1267,41 @@ export default function CourseCatalog() {
         onToggleEnroll={handleToggleEnroll}
         allCourses={courses}
       />
+
+      {/* Enrollment Key Dialog */}
+      {showEnrollKeyDialog && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60" onClick={() => setShowEnrollKeyDialog(null)}>
+          <div className="w-full max-w-sm rounded-xl border bg-background p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
+                <Lock className="h-5 w-5 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm">Enrollment Key Required</h3>
+                <p className="text-xs text-muted-foreground">Enter the key provided by your instructor</p>
+              </div>
+            </div>
+            <Input
+              placeholder="e.g. CS101-2026"
+              value={enrollKeyInput}
+              onChange={(e) => setEnrollKeyInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleEnrollWithKey(); }}
+              className="mb-3"
+              autoFocus
+            />
+            {enrollKeyError && (
+              <p className="text-xs text-rose-500 bg-rose-500/10 rounded px-2 py-1.5 mb-3">{enrollKeyError}</p>
+            )}
+            <div className="flex items-center justify-end gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setShowEnrollKeyDialog(null)}>Cancel</Button>
+              <Button size="sm" onClick={handleEnrollWithKey} disabled={enrollingWithKey || !enrollKeyInput.trim()} className="gap-1">
+                {enrollingWithKey ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                Enroll
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

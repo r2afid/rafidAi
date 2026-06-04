@@ -26,7 +26,7 @@ import {
   BookOpen,
   MessageSquare,
   PenLine,
-  Sparkles, ChevronDown, Lightbulb, Brain,
+  Sparkles, ChevronDown, Lightbulb,
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -60,8 +60,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import StudentDetailModal from "@/components/teacher/StudentDetailModal";
-import QuizManager from "./QuizManager";
-import CourseManager from "./CourseManager";
+
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -476,14 +475,6 @@ export default function TeacherDashboard() {
             <AlertTriangle className="size-4" />
             At-Risk Tracker
           </TabsTrigger>
-          <TabsTrigger value="quizzes" className="gap-1.5">
-            <Brain className="size-4" />
-            Quizzes
-          </TabsTrigger>
-          <TabsTrigger value="courses" className="gap-1.5">
-            <BookOpen className="size-4" />
-            Courses
-          </TabsTrigger>
         </TabsList>
 
         {/* ═══════════════════════ Tab 1 – Class Overview ═══════════════════════ */}
@@ -826,15 +817,6 @@ export default function TeacherDashboard() {
           </Card>
         </TabsContent>
 
-        {/* ═══════════════════════ Tab 3 – Quizzes ═══════════════════════ */}
-        <TabsContent value="quizzes" className="pt-2">
-          <QuizManager />
-        </TabsContent>
-
-        {/* ═══════════════════════ Tab 4 – Courses ═══════════════════════ */}
-        <TabsContent value="courses" className="pt-2">
-          <CourseManager />
-        </TabsContent>
       </Tabs>
 
       {/* ═══════════════════════ Intervention Sheet ═══════════════════════ */}

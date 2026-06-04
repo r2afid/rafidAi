@@ -765,8 +765,8 @@ export default function ProfileSettings() {
                   Current Courses
                 </p>
                 <div className="space-y-3">
-                  {(profileData?.academic?.enrollments?.length > 0 ? profileData.academic.enrollments : [{ code: 'N/A', name: 'No courses', attendance: 0 }]).map((course: any) => (
-                    <div key={course.code} className="space-y-1.5">
+                  {(profileData?.academic?.enrollments?.length > 0 ? profileData.academic.enrollments : [{ id: 'fallback', code: 'N/A', name: 'No courses', attendance: 0 }]).map((course: any, i: number) => (
+                    <div key={course.id || `${course.code}-${i}`} className="space-y-1.5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs font-mono font-medium text-teal-600 dark:text-teal-400">

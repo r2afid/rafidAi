@@ -54,6 +54,9 @@ model User {
   resources         Resource[]
   wellbeingAnalytics WellbeingAnalytics?
   deathWeekPlans    DeathWeekPlan[]
+  teacherAssignments Assignment[]
+  topicProgress      TopicProgress[]
+  reviews            Review[]
 }
 
 model AuthSession {
@@ -67,16 +70,25 @@ model AuthSession {
 }
 
 model Course {
-  id          String   @id @default(cuid())
-  name        String
-  code        String
-  description String?
-  teacherId   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  code          String
+  description   String?
+  teacherId     String
+  enrollmentKey String?
+  instructor    String?
+  category      String   @default("General")
+  difficulty    String   @default("Beginner")
+  thumbnail     String?
+  prerequisites String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   topics      Topic[]
   enrollments Enrollment[]
+  assignments Assignment[]
+  topicProgress TopicProgress[]
+  reviews       Review[]
 }
 
 model Enrollment {
@@ -98,6 +110,38 @@ model Enrollment {
   @@unique([studentId, courseId])
 }
 
+model TopicProgress {
+  id          String   @id @default(cuid())
+  studentId   String
+  topicId     String
+  courseId    String
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  student User  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  topic   Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  course  Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, topicId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  studentId String
+  courseId  String
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course  Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId])
+}
+
 model Topic {
   id        String   @id @default(cuid())
   name      String
@@ -105,9 +149,10 @@ model Topic {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  course    Course     @relation(fields: [courseId], references: [id])
+  course    Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
   materials Material[]
   quizzes   Quiz[]
+  topicProgress TopicProgress[]
 }
 
 model Material {
@@ -120,7 +165,7 @@ model Material {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  topic     Topic              @relation(fields: [topicId], references: [id])
+  topic     Topic              @relation(fields: [topicId], references: [id], onDelete: Cascade)
   progress  MaterialProgress[]
 }
 
@@ -134,8 +179,8 @@ model MaterialProgress {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  student  User     @relation(fields: [studentId], references: [id])
-  material Material @relation(fields: [materialId], references: [id])
+  student  User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  material Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
 }
 
 model Quiz {
@@ -145,10 +190,12 @@ model Quiz {
   difficulty  String   @default("medium") // easy, medium, hard
   timeLimit   Int      @default(300) // seconds
   teacherId   String?  // non-null = teacher-created quiz
+  dueDate     DateTime?
+  maxAttempts Int      @default(3)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  topic     Topic          @relation(fields: [topicId], references: [id])
+  topic     Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
   questions QuizQuestion[]
   attempts  QuizAttempt[]
 }
@@ -164,7 +211,7 @@ model QuizQuestion {
   correctKey  String // A, B, C, D
   explanation String?
 
-  quiz    Quiz          @relation(fields: [quizId], references: [id])
+  quiz    Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
   answers QuizAnswer[]
 }
 
@@ -180,8 +227,8 @@ model QuizAttempt {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  student User           @relation(fields: [studentId], references: [id])
-  quiz    Quiz           @relation(fields: [quizId], references: [id])
+  student User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  quiz    Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
   answers QuizAnswer[]
 }
 
@@ -192,8 +239,8 @@ model QuizAnswer {
   selectedKey     String
   isCorrect       Boolean @default(false)
 
-  attempt  QuizAttempt  @relation(fields: [attemptId], references: [id])
-  question QuizQuestion @relation(fields: [questionId], references: [id])
+  attempt  QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
 
 model ChatSession {
@@ -500,6 +547,23 @@ model Resource {
   updatedAt   DateTime @updatedAt
 
   author User? @relation(fields: [authorId], references: [id])
+}
+
+model Assignment {
+  id             String   @id @default(cuid())
+  title          String
+  description    String?
+  courseId       String
+  teacherId      String
+  taskType       String   // exam, project, assignment, quiz, presentation, lab_report
+  assignedDate   DateTime @default(now())
+  dueDate        DateTime
+  estimatedHours Float?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  course  Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher User   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 }
 
 model StudyNote {

@@ -24,6 +24,8 @@ export type PageKey =
   | 'exam-routine'
   | 'peer-comparison'
   | 'death-week-planner'
+  | 'course-manager'
+  | 'quiz-manager'
 
 interface AppState {
   activePage: PageKey
@@ -96,6 +98,7 @@ export const useAppStore = create<AppState>()(
       name: 'app-storage',
       partialize: (state) => ({
         activePage: state.activePage,
+        currentUser: state.currentUser,
       }),
     }
   )

@@ -124,6 +124,75 @@ function getMockDeadlines(): DeadlineTask[] {
   ];
 }
 
+async function fetchStudentDeadlines(userId: string): Promise<{ tasks: DeadlineTask[]; autoDetected: boolean; deadlinesThisWeek: number }> {
+  const now = Date.now();
+  const oneWeekFromNow = now + 7 * 86400000;
+
+  const enrollments = await db.enrollment.findMany({
+    where: { studentId: userId },
+    select: { courseId: true, course: { select: { name: true } } },
+  });
+
+  const courseIds = enrollments.map(e => e.courseId);
+  const courseNames = new Map(enrollments.map(e => [e.courseId, e.course.name]));
+
+  const hasEnrollments = courseIds.length > 0;
+
+  const [assignments, quizzes] = await Promise.all([
+    hasEnrollments
+      ? db.assignment.findMany({
+          where: { courseId: { in: courseIds }, dueDate: { gte: new Date(now), lte: new Date(oneWeekFromNow) } },
+        })
+      : Promise.resolve([]),
+    db.quiz.findMany({
+      where: {
+        teacherId: { not: null },
+        dueDate: { not: null, gte: new Date(now), lte: new Date(oneWeekFromNow) },
+        ...(hasEnrollments ? { topic: { courseId: { in: courseIds } } } : {}),
+      },
+      include: { topic: { select: { courseId: true, name: true } } },
+    }),
+  ]);
+
+  const tasks: DeadlineTask[] = [
+    ...assignments.map(a => ({
+      id: `assign-${a.id}`,
+      title: a.title,
+      courseName: courseNames.get(a.courseId) ?? 'Unknown Course',
+      taskType: a.taskType as DeathWeekTaskType,
+      dueDate: a.dueDate.toISOString(),
+      estimatedHours: a.estimatedHours ?? TASK_TYPE_HOURS[a.taskType as DeathWeekTaskType] ?? 6,
+      hoursSpent: 0,
+      progress: 0,
+      isAutoDetected: true,
+      isCompleted: false,
+    })),
+    ...quizzes.map(q => ({
+      id: `quiz-${q.id}`,
+      title: q.title,
+      courseName: courseNames.get(q.topic.courseId) ?? q.topic.name,
+      taskType: 'quiz' as DeathWeekTaskType,
+      dueDate: q.dueDate!.toISOString(),
+      estimatedHours: TASK_TYPE_HOURS.quiz,
+      hoursSpent: 0,
+      progress: 0,
+      isAutoDetected: true,
+      isCompleted: false,
+    })),
+  ];
+
+  const activeTasks = tasks.filter(t => {
+    const due = new Date(t.dueDate).getTime();
+    return due >= now && due <= oneWeekFromNow && !t.isCompleted;
+  });
+
+  return {
+    tasks,
+    autoDetected: activeTasks.length >= 3,
+    deadlinesThisWeek: activeTasks.length,
+  };
+}
+
 function buildDeathWeekState(tasks: DeadlineTask[], trigger: 'auto' | 'manual', existingId?: string): DeathWeekState {
   const now = Date.now();
   const recommendations = generateRecommendations(tasks);
@@ -167,16 +236,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const mockTasks = getMockDeadlines();
-    const now = Date.now();
-    const oneWeekFromNow = now + 7 * 86400000;
-    const deadlinesThisWeek = mockTasks.filter(t => {
-      const due = new Date(t.dueDate).getTime();
-      return due >= now && due <= oneWeekFromNow && !t.isCompleted;
-    });
-    const autoDetected = deadlinesThisWeek.length > 3;
+    const { tasks, autoDetected, deadlinesThisWeek } = await fetchStudentDeadlines(userId);
 
-    return NextResponse.json({ success: true, data: null, meta: { autoDetected, deadlinesThisWeek: deadlinesThisWeek.length } });
+    return NextResponse.json({ success: true, data: null, meta: { autoDetected, deadlinesThisWeek } });
   } catch (error) {
     console.error('Planner GET error:', error);
     return NextResponse.json({ success: true, data: null, meta: { autoDetected: false, deadlinesThisWeek: 0 } });
@@ -211,8 +273,8 @@ async function handleActivate(data?: Record<string, unknown>) {
   const trigger = (data?.trigger as 'auto' | 'manual') ?? 'manual';
 
   if (!userId) {
-    const tasks = getMockDeadlines();
-    const state = buildDeathWeekState(tasks, trigger);
+    const { tasks } = await fetchStudentDeadlines('');
+    const state = buildDeathWeekState(tasks.length > 0 ? tasks : getMockDeadlines(), trigger);
     return NextResponse.json({ success: true, data: state });
   }
 
@@ -228,9 +290,9 @@ async function handleActivate(data?: Record<string, unknown>) {
       if (stored && Array.isArray(stored) && stored.length > 0) {
         const hasActiveTasks = stored.some(t => !t.isCompleted);
         if (hasActiveTasks) { tasks = stored; planId = existingPlan.id; }
-        else { await db.deathWeekPlan.delete({ where: { id: existingPlan.id } }).catch(() => {}); tasks = getMockDeadlines(); }
-      } else { await db.deathWeekPlan.delete({ where: { id: existingPlan.id } }).catch(() => {}); tasks = getMockDeadlines(); }
-    } else { tasks = getMockDeadlines(); }
+        else { await db.deathWeekPlan.delete({ where: { id: existingPlan.id } }).catch(() => {}); const r = await fetchStudentDeadlines(userId); tasks = r.tasks; }
+      } else { await db.deathWeekPlan.delete({ where: { id: existingPlan.id } }).catch(() => {}); const r = await fetchStudentDeadlines(userId); tasks = r.tasks; }
+    } else { const r = await fetchStudentDeadlines(userId); tasks = r.tasks; }
 
   const state = buildDeathWeekState(tasks, trigger, planId);
 
@@ -296,7 +358,7 @@ async function handleAddTask(data?: Record<string, unknown>) {
   }
 
   if (!userId) {
-    const tasks = getMockDeadlines();
+    const { tasks } = await fetchStudentDeadlines('');
     const newTask: DeadlineTask = {
       id: `manual-${Date.now()}`, title, courseName, taskType,
       dueDate, estimatedHours: estimatedHours ?? TASK_TYPE_HOURS[taskType] ?? 6,
@@ -307,7 +369,7 @@ async function handleAddTask(data?: Record<string, unknown>) {
   }
 
   const existingPlan = await db.deathWeekPlan.findFirst({ where: { userId }, orderBy: { updatedAt: 'desc' } });
-  const tasks = existingPlan ? safeJsonParse<DeadlineTask[]>(existingPlan.subjects, []) : getMockDeadlines();
+  const tasks = existingPlan ? safeJsonParse<DeadlineTask[]>(existingPlan.subjects, []) : (await fetchStudentDeadlines(userId)).tasks;
 
   const newTask: DeadlineTask = {
     id: `manual-${Date.now()}`, title, courseName, taskType,

@@ -18,6 +18,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Quiz not found' }, { status: 404 })
     }
 
+    // Enforce max attempts
+    const attemptCount = await db.quizAttempt.count({
+      where: { quizId, studentId },
+    })
+    if (attemptCount >= quiz.maxAttempts) {
+      return NextResponse.json({
+        error: `You have used all ${quiz.maxAttempts} allowed attempt(s) for this quiz.`,
+      }, { status: 403 })
+    }
+
     let correctCount = 0
     const answerRecords = quiz.questions.map(q => {
       const selected = answers[q.id] || ''

@@ -27,6 +27,8 @@ interface TeacherQuiz {
   difficulty: Difficulty
   questionCount: number
   timeLimit: number
+  maxAttempts: number
+  attemptCount: number
   myAttempt?: {
     score: number
     totalQuestions: number
@@ -101,6 +103,8 @@ export default function TeacherQuizTaker() {
           difficulty: q.difficulty || 'medium',
           questionCount: q.questions?.length || 0,
           timeLimit: q.timeLimit || 600,
+          maxAttempts: q.maxAttempts ?? 3,
+          attemptCount: q._count?.attempts ?? 0,
           myAttempt: q.myAttempt || null,
         }))
         setQuizzes(mapped)
@@ -287,11 +291,18 @@ export default function TeacherQuizTaker() {
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {quizzes.map((quiz) => (
+            {quizzes.map((quiz) => {
+              const attemptsLeft = quiz.maxAttempts - quiz.attemptCount
+              const attemptsExhausted = attemptsLeft <= 0
+              return (
               <button
                 key={quiz.id}
-                onClick={() => startQuiz(quiz.id)}
-                className="group relative overflow-hidden rounded-xl border bg-card text-left transition-all hover:border-primary/50 hover:shadow-md"
+                onClick={() => !attemptsExhausted && startQuiz(quiz.id)}
+                disabled={attemptsExhausted}
+                className={cn(
+                  "group relative overflow-hidden rounded-xl border bg-card text-left transition-all hover:border-primary/50 hover:shadow-md",
+                  attemptsExhausted && "opacity-50 pointer-events-none"
+                )}
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-2">
@@ -316,32 +327,48 @@ export default function TeacherQuizTaker() {
                       {quiz.timeLimit} min
                     </span>
                   </div>
-                  {quiz.myAttempt ? (
-                    <div
-                      className={cn(
-                        'flex items-center gap-2 rounded-lg border px-3 py-2 text-xs',
-                        quiz.myAttempt.score >= 70
-                          ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                          : 'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                      )}
-                    >
-                      {quiz.myAttempt.score >= 70 ? (
-                        <CheckCircle2 className="size-3.5 shrink-0" />
-                      ) : (
-                        <XCircle className="size-3.5 shrink-0" />
-                      )}
-                      Attempted: {quiz.myAttempt.correctCount}/{quiz.myAttempt.totalQuestions} (
-                      {quiz.myAttempt.score}%)
+                  {attemptsExhausted ? (
+                    <div className="flex items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-xs text-rose-600 dark:text-rose-400">
+                      <XCircle className="size-3.5 shrink-0" />
+                      No attempts remaining
+                    </div>
+                  ) : quiz.myAttempt ? (
+                    <div className="space-y-1.5">
+                      <div
+                        className={cn(
+                          'flex items-center gap-2 rounded-lg border px-3 py-2 text-xs',
+                          quiz.myAttempt.score >= 70
+                            ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                            : 'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                        )}
+                      >
+                        {quiz.myAttempt.score >= 70 ? (
+                          <CheckCircle2 className="size-3.5 shrink-0" />
+                        ) : (
+                          <XCircle className="size-3.5 shrink-0" />
+                        )}
+                        Attempted: {quiz.myAttempt.correctCount}/{quiz.myAttempt.totalQuestions} (
+                        {quiz.myAttempt.score}%)
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {attemptsLeft} attempt{attemptsLeft !== 1 ? 's' : ''} remaining
+                      </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1 text-xs text-primary/70">
-                      Take quiz
-                      <ChevronRight className="size-3" />
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1 text-xs text-primary/70">
+                        Take quiz
+                        <ChevronRight className="size-3" />
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {attemptsLeft} attempt{attemptsLeft !== 1 ? 's' : ''} remaining
+                      </div>
                     </div>
                   )}
                 </CardContent>
               </button>
-            ))}
+            )}
+            )}
           </div>
         )}
       </div>

@@ -11,7 +11,6 @@ export async function GET(request: Request) {
       include: {
         questions: true,
         topic: { select: { name: true } },
-        _count: { select: { attempts: true } },
       },
       orderBy: { createdAt: 'desc' },
     })
@@ -23,10 +22,20 @@ export async function GET(request: Request) {
         })
       : []
 
+    const attemptCountMap = studentId
+      ? await db.quizAttempt.groupBy({
+          by: ['quizId'],
+          where: { studentId },
+          _count: { quizId: true },
+        })
+      : []
+
+    const countMap = new Map(attemptCountMap.map(a => [a.quizId, a._count.quizId]))
     const attemptMap = new Map(attempts.map(a => [a.quizId, a]))
     const enriched = quizzes.map(q => ({
       ...q,
       myAttempt: attemptMap.get(q.id) || null,
+      _count: { attempts: countMap.get(q.id) || 0 },
     }))
 
     return NextResponse.json({ quizzes: enriched })
