@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -16,10 +17,9 @@ import LeftPanel from './LeftPanel'
 import CenterPanel from './CenterPanel'
 import RightPanel from './RightPanel'
 import type { QuizAttempt, QuizQuestion, MistakeExplanationData, MisconceptionRecord, RemediationExerciseData, MistakeTypeEnum } from './types'
-import { Send, MessageSquare, GraduationCap, Stethoscope, BarChart3, BookOpen, AlertCircle, RefreshCw, X, PanelLeft, LayoutDashboard } from 'lucide-react'
+import { Send, MessageSquare, GraduationCap, Stethoscope, BarChart3, BookOpen, AlertCircle, RefreshCw, X, PanelLeft, LayoutDashboard, Brain } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
-import { cn } from '@/lib/utils'
 
 function mapApiQuestionToQuizQuestion(q: any): QuizQuestion {
   const apiMistakeType = q.mistakeType || q.question?.mistakeType || null
@@ -93,7 +93,7 @@ export default function ExplainMistake() {
   const [selectedAttemptId, setSelectedAttemptId] = useState<string>('')
   const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null)
   const [followUpInput, setFollowUpInput] = useState('')
-  const [activeTab, setActiveTab] = useState<'diagnosis' | 'mastery'>('diagnosis')
+  const [activeTab, setActiveTab] = useState<'diagnosis' | 'misconceptions' | 'mastery'>('diagnosis')
 
   const fetchMisconceptions = useCallback(() => {
     if (!user?.id) return
@@ -395,8 +395,8 @@ export default function ExplainMistake() {
 
   if (!attemptsLoading && !attemptsError && attempts.length === 0) {
     return (
-      <div className="flex flex-col h-full min-h-0 bg-gradient-to-br from-background via-background to-muted/30">
-        <div className="shrink-0 border-b bg-card/60 backdrop-blur-md px-4 py-2.5">
+      <div className="flex flex-col h-full min-h-0 bg-background">
+        <div className="shrink-0 border-b bg-card/60 backdrop-blur-xl px-4 py-2.5">
           <div className="flex items-center gap-3">
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-violet-600 dark:text-violet-400">
               <GraduationCap className="size-4" />
@@ -405,7 +405,7 @@ export default function ExplainMistake() {
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
-          <Card className="max-w-lg bg-card/50 backdrop-blur-sm border-dashed">
+          <Card className="max-w-lg bg-card/50 backdrop-blur-xl border-dashed">
             <CardContent className="p-8 text-center space-y-4">
               <div className="flex justify-center">
                 <div className="flex size-16 items-center justify-center rounded-full bg-violet-500/10">
@@ -429,8 +429,8 @@ export default function ExplainMistake() {
 
   if (attemptsLoading) {
     return (
-      <div className="flex flex-col h-full min-h-0 bg-gradient-to-br from-background via-background to-muted/30">
-        <div className="shrink-0 border-b bg-card/60 backdrop-blur-md px-4 py-2.5">
+      <div className="flex flex-col h-full min-h-0 bg-background">
+        <div className="shrink-0 border-b bg-card/60 backdrop-blur-xl px-4 py-2.5">
           <div className="flex items-center gap-3">
             <Skeleton className="size-8 rounded-lg" />
             <Skeleton className="h-5 w-40" />
@@ -449,8 +449,8 @@ export default function ExplainMistake() {
 
   if (attemptsError) {
     return (
-      <div className="flex flex-col h-full min-h-0 bg-gradient-to-br from-background via-background to-muted/30">
-        <div className="shrink-0 border-b bg-card/60 backdrop-blur-md px-4 py-2.5">
+      <div className="flex flex-col h-full min-h-0 bg-background">
+        <div className="shrink-0 border-b bg-card/60 backdrop-blur-xl px-4 py-2.5">
           <div className="flex items-center gap-3">
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-violet-600 dark:text-violet-400">
               <GraduationCap className="size-4" />
@@ -459,7 +459,7 @@ export default function ExplainMistake() {
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
-          <Card className="max-w-md bg-card/50 backdrop-blur-sm border-dashed border-rose-500/30">
+          <Card className="max-w-md bg-card/50 backdrop-blur-xl border-dashed border-rose-500/30">
             <CardContent className="p-6 text-center space-y-3">
               <div className="flex justify-center">
                 <div className="flex size-12 items-center justify-center rounded-full bg-rose-500/10">
@@ -484,8 +484,8 @@ export default function ExplainMistake() {
   }
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-gradient-to-br from-background via-background to-muted/30">
-      <div className="shrink-0 border-b bg-card/60 backdrop-blur-md px-4 py-2.5">
+    <div className="flex flex-col h-full min-h-0 bg-background">
+      <div className="shrink-0 border-b bg-card/60 backdrop-blur-xl px-4 py-2.5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-violet-600 dark:text-violet-400">
@@ -521,7 +521,7 @@ export default function ExplainMistake() {
       <div className="flex-1 flex min-h-0 overflow-hidden">
 
 
-        <aside className="w-[280px] lg:w-[320px] shrink-0 hidden lg:flex flex-col border-r bg-card/40 backdrop-blur-sm h-full overflow-y-auto scrollbar-thin">
+        <aside className="w-[280px] lg:w-[320px] shrink-0 hidden lg:flex flex-col border-r bg-card/40 backdrop-blur-xl h-full overflow-y-auto scrollbar-thin">
           <div className="p-3">
             {selectedAttempt ? (
               <LeftPanel
@@ -616,31 +616,57 @@ export default function ExplainMistake() {
         )}
 
         <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-          <div className="shrink-0 border-b bg-card/40 backdrop-blur-sm px-4 py-2 flex items-center gap-1.5">
-            <button
-              onClick={() => setActiveTab('diagnosis')}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
-                activeTab === 'diagnosis'
-                  ? 'bg-primary/10 text-primary shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-              )}
-            >
-              <Stethoscope className="size-3.5" />
-              Core Diagnosis
-            </button>
-            <button
-              onClick={() => setActiveTab('mastery')}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
-                activeTab === 'mastery'
-                  ? 'bg-primary/10 text-primary shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-              )}
-            >
-              <BarChart3 className="size-3.5" />
-              Mastery Tools
-            </button>
+          <div className="shrink-0 border-b bg-card/40 backdrop-blur-xl px-4 py-2 flex items-center gap-1.5">
+            <div className="relative flex items-center bg-white/[0.01] backdrop-blur-sm border border-white/5 p-1 rounded-xl">
+              <button
+                onClick={() => setActiveTab('diagnosis')}
+                className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-200 ${
+                  activeTab === 'diagnosis' ? 'text-white dark:text-white font-medium' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Stethoscope className="size-3.5" />
+                Core Diagnosis
+                {activeTab === 'diagnosis' && (
+                  <motion.div
+                    layoutId="explainMistakeTab"
+                    className="absolute inset-0 bg-white/[0.06] border border-white/10 rounded-lg shadow-md z-0"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('mastery')}
+                className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-200 ${
+                  activeTab === 'mastery' ? 'text-white dark:text-white font-medium' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <BarChart3 className="size-3.5" />
+                Mastery Tools
+                {activeTab === 'mastery' && (
+                  <motion.div
+                    layoutId="explainMistakeTab"
+                    className="absolute inset-0 bg-white/[0.06] border border-white/10 rounded-lg shadow-md z-0"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('misconceptions')}
+                className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-200 ${
+                  activeTab === 'misconceptions' ? 'text-white dark:text-white font-medium' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Brain className="size-3.5" />
+                Misconception History
+                {activeTab === 'misconceptions' && (
+                  <motion.div
+                    layoutId="explainMistakeTab"
+                    className="absolute inset-0 bg-white/[0.06] border border-white/10 rounded-lg shadow-md z-0"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </button>
+            </div>
             <div className="flex-1" />
             <button
               onClick={() => setShowMobileLeft(true)}
@@ -660,18 +686,48 @@ export default function ExplainMistake() {
 
           <div className="flex-1 overflow-y-auto p-3 lg:p-4 scrollbar-thin">
             {selectedQuestion ? (
-              <CenterPanel
-                question={selectedQuestion}
-                attemptId={selectedAttempt?.id ?? ''}
-                activeTab={activeTab}
-                explanation={selectedExplanation}
-                isLoading={explanationsLoading || (loadingQuestionId != null && loadingQuestionId === selectedQuestion?.id)}
-                questionNumber={selectedAttempt ? selectedAttempt.questions.findIndex((q) => q.id === selectedQuestion.id) + 1 : undefined}
-                onSwitchToMastery={() => setActiveTab('mastery')}
-              />
+              <div className="space-y-4">
+                <CenterPanel
+                  question={selectedQuestion}
+                  attemptId={selectedAttempt?.id ?? ''}
+                  activeTab={activeTab}
+                  explanation={selectedExplanation}
+                  isLoading={explanationsLoading || (loadingQuestionId != null && loadingQuestionId === selectedQuestion?.id)}
+                  questionNumber={selectedAttempt ? selectedAttempt.questions.findIndex((q) => q.id === selectedQuestion.id) + 1 : undefined}
+                  onSwitchToMastery={() => setActiveTab('mastery')}
+                />
+                {activeTab !== 'diagnosis' && (
+                  <RightPanel
+                    variant={activeTab === 'misconceptions' ? 'misconceptions' : 'exercises'}
+                    misconceptions={misconceptions}
+                    exercises={exercises}
+                    loading={rightLoading}
+                    onCompleteExercise={handleCompleteExercise}
+                    activeExplanation={selectedExplanation}
+                    question={selectedQuestion}
+                    onGenerateExercises={() => {
+                      if (!selectedAttemptId) return
+                      setExplanationsLoading(true)
+                      setActiveTab('mastery')
+                      fetch(`/api/quiz/explain-mistake?attempt_id=${selectedAttemptId}`)
+                        .then((res) => res.json())
+                        .then((data) => {
+                          const newExercises: RemediationExerciseData[] = []
+                          ;(data.explanations || []).forEach((apiExp: any) => {
+                            const mapped = mapApiExplanationToMistakeExplanationData(apiExp)
+                            if (mapped.remediationExercises?.length) newExercises.push(...mapped.remediationExercises)
+                          })
+                          setExercises((prev) => [...prev, ...newExercises])
+                          setExplanationsLoading(false)
+                        })
+                        .catch(() => setExplanationsLoading(false))
+                    }}
+                  />
+                )}
+              </div>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <Card className="max-w-md bg-card/50 backdrop-blur-sm">
+                <Card className="max-w-md bg-card/50 backdrop-blur-xl">
                   <CardContent className="p-6 text-center">
                     <div className="flex justify-center mb-3">
                       <MessageSquare className="size-8 text-muted-foreground" />
@@ -692,7 +748,7 @@ export default function ExplainMistake() {
                   value={followUpInput}
                   onChange={(e) => setFollowUpInput(e.target.value)}
                   placeholder="Ask a follow-up question about this mistake..."
-                  className="min-h-[36px] max-h-[80px] text-sm resize-none pr-10 rounded-xl bg-muted/50 border-border/50 focus:border-primary/50"
+                  className="min-h-[36px] max-h-[80px] text-sm resize-none pr-10 rounded-2xl bg-muted/50 border-border/50 focus:border-primary/50"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault()
@@ -712,38 +768,6 @@ export default function ExplainMistake() {
             </div>
           </div>
         </div>
-
-        {activeTab === 'mastery' && (
-          <aside className="w-[280px] lg:w-[320px] shrink-0 hidden xl:flex flex-col border-l bg-card/40 backdrop-blur-sm h-full overflow-y-auto scrollbar-thin">
-            <div className="p-3 space-y-4">
-              <RightPanel
-                misconceptions={misconceptions}
-                exercises={exercises}
-                loading={rightLoading}
-                onCompleteExercise={handleCompleteExercise}
-                activeExplanation={selectedExplanation}
-                question={selectedQuestion}
-                onGenerateExercises={() => {
-                  if (!selectedAttemptId) return
-                  setExplanationsLoading(true)
-                  setActiveTab('mastery')
-                  fetch(`/api/quiz/explain-mistake?attempt_id=${selectedAttemptId}`)
-                    .then((res) => res.json())
-                    .then((data) => {
-                      const newExercises: RemediationExerciseData[] = []
-                      ;(data.explanations || []).forEach((apiExp: any) => {
-                        const mapped = mapApiExplanationToMistakeExplanationData(apiExp)
-                        if (mapped.remediationExercises?.length) newExercises.push(...mapped.remediationExercises)
-                      })
-                      setExercises((prev) => [...prev, ...newExercises])
-                      setExplanationsLoading(false)
-                    })
-                    .catch(() => setExplanationsLoading(false))
-                }}
-              />
-            </div>
-          </aside>
-        )}
       </div>
     </div>
   )

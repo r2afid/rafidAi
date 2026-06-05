@@ -8,19 +8,18 @@ import {
   Bot, Send, BookOpen, MessageSquare, Sparkles,
   Clipboard, ClipboardCheck, Search, Plus, Trash2,
   PanelLeftClose, PanelLeftOpen, FileText, Lightbulb,
-  Code, GraduationCap, Trophy, RefreshCw, ChevronRight,
+  Code, GraduationCap, Trophy, RefreshCw, ChevronRight, ChevronDown,
   Hash, X, MoreHorizontal, Bookmark, Save,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
-  DropdownMenuItem, DropdownMenuSeparator,
+  DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app'
@@ -580,30 +579,27 @@ export default function AITutor() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="flex items-start gap-3"
+      className="flex items-start gap-2.5"
     >
-      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
-        <Bot className="size-4" />
+      <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white mt-0.5 shadow-xs">
+        <Bot className="size-3.5" />
       </div>
-      <div className="rounded-2xl rounded-tl-sm px-4 py-3 bg-muted space-y-2">
-        {[0, 1, 2].map(i => (
-          <div key={i} className="flex gap-1.5">
-            {[0.9, 0.7, 0.5].map((width, j) => (
-              <motion.div
-                key={j}
-                className="h-2.5 rounded-full bg-muted-foreground/15"
-                style={{ width: `${width * 2.5}rem` }}
-                animate={{ opacity: [0.3, 0.7, 0.3] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  delay: (i * 3 + j) * 0.15,
-                  ease: 'easeInOut',
-                }}
-              />
-            ))}
-          </div>
-        ))}
+      <div className="rounded-2xl rounded-tl-sm px-4 py-3 bg-muted/80">
+        <div className="flex items-center gap-1">
+          {[0, 1, 2].map(i => (
+            <motion.span
+              key={i}
+              className="size-1.5 rounded-full bg-muted-foreground/40"
+              animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+              transition={{
+                duration: 1.2,
+                repeat: Infinity,
+                delay: i * 0.2,
+                ease: 'easeInOut',
+              }}
+            />
+          ))}
+        </div>
       </div>
     </motion.div>
   )
@@ -621,100 +617,106 @@ export default function AITutor() {
     }
 
     return (
-      <div className="relative my-3 rounded-lg overflow-hidden border bg-zinc-950 dark:bg-zinc-900">
-        {lang && (
-          <div className="flex items-center justify-between px-3 py-1.5 border-b border-zinc-800 bg-zinc-900 dark:bg-zinc-800">
-            <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">{lang}</span>
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1 text-[10px] text-zinc-400 hover:text-zinc-200 transition-colors"
-            >
-              {copied ? <ClipboardCheck className="size-3 text-emerald-400" /> : <Clipboard className="size-3" />}
-              {copied ? 'Copied' : 'Copy'}
-            </button>
+      <div className="relative my-3 rounded-xl overflow-hidden border border-border/50 bg-zinc-950 dark:bg-zinc-900 shadow-xs">
+        <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800/60 bg-zinc-900/80 dark:bg-zinc-800/60">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <span className="size-2 rounded-full bg-rose-500/80" />
+              <span className="size-2 rounded-full bg-amber-500/80" />
+              <span className="size-2 rounded-full bg-emerald-500/80" />
+            </div>
+            {lang && (
+              <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider ml-2">{lang}</span>
+            )}
           </div>
-        )}
-        {!lang && (
           <button
             onClick={handleCopy}
-            className="absolute top-2 right-2 flex items-center gap-1 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="flex items-center gap-1 text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors bg-zinc-800/50 hover:bg-zinc-700/50 rounded-md px-2 py-1"
           >
             {copied ? <ClipboardCheck className="size-3 text-emerald-400" /> : <Clipboard className="size-3" />}
+            {copied ? 'Copied!' : 'Copy code'}
           </button>
-        )}
-        <pre className="overflow-x-auto p-3">
-          <code className={cn('text-xs leading-relaxed', !lang && 'text-emerald-300')}>{code}</code>
+        </div>
+        <pre className="overflow-x-auto p-4">
+          <code className={cn('text-xs leading-relaxed font-mono', !lang && 'text-emerald-300')}>{code}</code>
         </pre>
       </div>
     )
   }
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-3 border-b">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20">
-            <Bot className="size-4" />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">AI Tutor</h2>
-            <p className="text-[10px] text-muted-foreground">7 learning modes</p>
-          </div>
+    <div className="flex flex-col h-full w-full">
+      <div className="flex items-center gap-3 px-4 py-3.5 border-b">
+        <div className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/20">
+          <Bot className="size-4" />
         </div>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="hidden lg:flex size-7 text-muted-foreground hover:text-foreground" onClick={() => setSidebarOpen(false)}>
-            <PanelLeftClose className="size-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="lg:hidden size-7" onClick={() => setMobileSheetOpen(false)}>
-            <X className="size-4" />
-          </Button>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-sm font-bold text-foreground">AI Tutor</h2>
+          <p className="text-[11px] text-muted-foreground/70">7 learning modes</p>
         </div>
       </div>
 
-      <div className="p-3">
+      <div className="px-4 pt-3 pb-2">
         <Button
           onClick={() => { createNewConversation(); setMobileSheetOpen(false) }}
-          className="w-full gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-md shadow-emerald-500/20"
-          size="sm"
+          className="w-full gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-sm shadow-emerald-500/20 h-9 text-xs"
         >
           <Plus className="size-4" />
           New Chat
         </Button>
       </div>
 
-      <div className="flex px-3 gap-1 mb-2">
+      <div className="relative flex items-center bg-slate-500/[0.03] dark:bg-white/[0.01] backdrop-blur-sm border border-slate-200/50 dark:border-white/5 p-1 mx-4 mb-2 rounded-xl shadow-none">
         <button
           onClick={() => setSidebarTab('chats')}
           className={cn(
-            'flex-1 text-center py-1.5 rounded-lg text-xs font-medium transition-colors',
-            sidebarTab === 'chats' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground hover:bg-muted'
+            'flex-1 relative z-10 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs transition-colors duration-200',
+            sidebarTab === 'chats' ? 'text-emerald-600 font-semibold dark:text-white dark:font-medium' : 'text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
           )}
         >
-          <MessageSquare className="size-3 inline mr-1" />
-          Chats
+          {sidebarTab === 'chats' && (
+            <motion.div
+              layoutId="activeSidebarTabPill"
+              className="absolute inset-0 bg-white dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 rounded-lg shadow-sm shadow-slate-200/50 dark:shadow-black/40 z-0 backdrop-blur-md"
+              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            />
+          )}
+          <span className="relative z-10 flex items-center gap-1.5">
+            <MessageSquare className="size-3.5" />
+            Chats
+          </span>
         </button>
         <button
           onClick={() => setSidebarTab('topics')}
           className={cn(
-            'flex-1 text-center py-1.5 rounded-lg text-xs font-medium transition-colors',
-            sidebarTab === 'topics' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground hover:bg-muted'
+            'flex-1 relative z-10 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs transition-colors duration-200',
+            sidebarTab === 'topics' ? 'text-emerald-600 font-semibold dark:text-white dark:font-medium' : 'text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
           )}
         >
-          <BookOpen className="size-3 inline mr-1" />
-          Topics
+          {sidebarTab === 'topics' && (
+            <motion.div
+              layoutId="activeSidebarTabPill"
+              className="absolute inset-0 bg-white dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 rounded-lg shadow-sm shadow-slate-200/50 dark:shadow-black/40 z-0 backdrop-blur-md"
+              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            />
+          )}
+          <span className="relative z-10 flex items-center gap-1.5">
+            <BookOpen className="size-3.5" />
+            Topics
+          </span>
         </button>
       </div>
 
-      <Separator className="mx-3" />
+      <div className="mx-4 h-px bg-border/50" />
 
-      <ScrollArea className="flex-1 min-h-0">
+      <ScrollArea className="flex-1 min-h-0 w-full">
         {sidebarTab === 'chats' ? (
-          <div className="p-2 space-y-1">
+          <div className="px-3 py-2 space-y-0.5">
             {conversations.length === 0 && (
-              <div className="py-8 text-center">
-                <MessageSquare className="size-8 mx-auto mb-2 text-muted-foreground/30" />
-                <p className="text-xs text-muted-foreground">No conversations yet</p>
-                <p className="text-[10px] text-muted-foreground/60 mt-0.5">Start a new chat to begin</p>
+              <div className="py-10 text-center">
+                <MessageSquare className="size-8 mx-auto mb-2 text-muted-foreground/20" />
+                <p className="text-xs text-muted-foreground/60">No conversations yet</p>
+                <p className="text-[11px] text-muted-foreground/40 mt-1">Start a new chat to begin</p>
               </div>
             )}
             <AnimatePresence>
@@ -724,34 +726,40 @@ export default function AITutor() {
                 const isActive = conv.id === activeConversationId
 
                 return (
-                  <motion.div
+                    <motion.div
                     key={conv.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
                     transition={{ delay: index * 0.03 }}
+                    className="w-full"
                   >
                     <div
                       className={cn(
-                        'group flex items-start gap-2 rounded-lg p-2.5 cursor-pointer transition-all',
-                        'hover:bg-muted/80',
-                        isActive && 'bg-emerald-500/10 border border-emerald-500/20'
+                        'group flex items-start gap-2.5 rounded-lg p-2.5 cursor-pointer transition-all w-full',
+                        'hover:bg-muted/60',
+                        isActive && 'bg-emerald-500/10 ring-1 ring-emerald-500/20'
                       )}
                       onClick={() => { switchConversation(conv.id); setMobileSheetOpen(false) }}
                     >
-                      <ModeIcon className={cn('size-4 mt-0.5 shrink-0', isActive ? 'text-emerald-600 dark:text-emerald-400' : (modeInfo?.color || 'text-muted-foreground'))} />
+                      <div className={cn(
+                        'flex size-7 items-center justify-center rounded-md shrink-0 transition-colors',
+                        isActive ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-muted/60 text-muted-foreground'
+                      )}>
+                        <ModeIcon className="size-3.5" />
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium truncate line-clamp-1">{conv.title}</p>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <span className={cn('text-[10px]', isActive ? 'text-emerald-600/70 dark:text-emerald-400/70' : 'text-muted-foreground')}>{formatDate(conv.createdAt)}</span>
+                        <p className="text-xs font-medium truncate">{conv.title}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className={cn('text-[10px]', isActive ? 'text-emerald-600/60 dark:text-emerald-400/60' : 'text-muted-foreground/50')}>{formatDate(conv.createdAt)}</span>
                           {conv.topic && (
-                            <Badge className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded font-medium">{conv.topic}</Badge>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted/60 text-muted-foreground/60 font-medium">{conv.topic}</span>
                           )}
                         </div>
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id) }}
-                        className="opacity-0 group-hover:opacity-100 size-5 rounded flex items-center justify-center text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-all shrink-0"
+                        className="opacity-0 group-hover:opacity-100 size-6 rounded-md flex items-center justify-center text-muted-foreground/40 hover:text-rose-500 hover:bg-rose-500/10 transition-all shrink-0"
                       >
                         <Trash2 className="size-3" />
                       </button>
@@ -762,7 +770,7 @@ export default function AITutor() {
             </AnimatePresence>
           </div>
         ) : (
-          <div className="p-3 space-y-3">
+          <div className="px-3 py-2 space-y-3">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
               <Input
@@ -805,7 +813,7 @@ export default function AITutor() {
                           })
                         }}
                         className={cn(
-                          'flex items-center gap-2.5 w-full px-3 py-2.5 text-left transition-colors',
+                          'flex items-center gap-2.5 w-full px-4 py-3 text-left transition-colors',
                           hasActive ? 'bg-emerald-500/10' : 'hover:bg-muted/60'
                         )}
                       >
@@ -834,7 +842,7 @@ export default function AITutor() {
                             transition={{ duration: 0.2, ease: 'easeInOut' }}
                             className="overflow-hidden"
                           >
-                            <div className="border-t border-border/30 px-1 pb-1">
+                            <div className="border-t border-border/30 px-1.5 pb-2">
                               {group.topics.map((topic, idx) => {
                                 const isSelected = activeTopic === topic.id
                                 return (
@@ -845,7 +853,7 @@ export default function AITutor() {
                                     transition={{ delay: idx * 0.03 }}
                                     onClick={() => handleSelectTopic(topic.id)}
                                     className={cn(
-                                      'flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-left transition-all',
+                                      'flex items-center gap-2.5 w-full rounded-lg px-3 py-2.5 text-left transition-all',
                                       isSelected
                                         ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
                                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -878,14 +886,14 @@ export default function AITutor() {
   )
 
   return (
-    <div className="flex h-full min-h-0">
+    <div className="flex h-full min-h-0 w-full max-h-screen overflow-hidden">
       <aside
         className={cn(
-          'hidden lg:flex flex-col border-r bg-card/80 backdrop-blur-xl overflow-hidden shrink-0 transition-all duration-250 ease-out',
-          sidebarOpen ? 'w-64 xl:w-[280px] opacity-100' : 'w-0 opacity-0 border-r-0'
+          'hidden lg:flex flex-col border-r border-border/40 bg-card/80 backdrop-blur-xl overflow-hidden shrink-0 transition-all duration-250 ease-out',
+          sidebarOpen ? 'w-80 xl:w-80 2xl:w-96 opacity-100 shadow-sm shadow-black/[0.02] dark:shadow-black/[0.08]' : 'w-0 opacity-0 border-r-0'
         )}
       >
-        <div className={cn('w-64 xl:w-[280px] h-full', !sidebarOpen && 'pointer-events-none')}>
+        <div className={cn('w-80 xl:w-80 2xl:w-96 h-full', !sidebarOpen && 'pointer-events-none')}>
           <SidebarContent />
         </div>
       </aside>
@@ -898,17 +906,17 @@ export default function AITutor() {
         </SheetContent>
       </Sheet>
 
-      <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
-        <div className="sticky top-0 z-10 shrink-0 border-b bg-card/60 backdrop-blur-md">
-          <div className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 sm:py-2 overflow-x-auto scrollbar-none">
+      <div className="flex flex-col flex-1 h-full max-h-full overflow-hidden w-full relative bg-transparent">
+        <div className="shrink-0 border-b border-border/40 bg-card/50 backdrop-blur-md z-10 relative">
+          <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 overflow-x-auto scrollbar-none">
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   className={cn(
-                    'shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border',
+                    'shrink-0 flex items-center justify-center size-7 rounded-lg transition-all',
                     sidebarOpen
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
-                      : 'bg-secondary/60 border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary'
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
+                      : 'text-muted-foreground/50 hover:text-foreground hover:bg-muted/60'
                   )}
                   onClick={() => {
                     if (window.innerWidth >= 1024) {
@@ -919,7 +927,6 @@ export default function AITutor() {
                   }}
                 >
                   {sidebarOpen ? <PanelLeftClose className="size-3.5" /> : <PanelLeftOpen className="size-3.5" />}
-                  <span className="hidden xl:inline">Sidebar</span>
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" sideOffset={4}>
@@ -927,28 +934,28 @@ export default function AITutor() {
               </TooltipContent>
             </Tooltip>
 
-            <Separator orientation="vertical" className="h-4 sm:h-5 shrink-0" />
+            <div className="w-px h-4 bg-border/40 shrink-0" />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   className={cn(
-                    'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border shrink-0',
-                    MODES.find(m => m.key === activeMode)?.bgColor,
+                    'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0',
+                    'hover:bg-muted/60',
                     MODES.find(m => m.key === activeMode)?.color,
                   )}
                 >
                   {(() => {
                     const CurrentIcon = MODES.find(m => m.key === activeMode)?.icon || Bot
-                    return <CurrentIcon className="size-3.5 sm:size-4" />
+                    return <CurrentIcon className="size-3.5" />
                   })()}
-                  <span className="max-w-[80px] sm:max-w-none truncate">
+                  <span className="max-w-[80px] sm:max-w-none truncate text-foreground/80">
                     {MODES.find(m => m.key === activeMode)?.label}
                   </span>
-                  <ChevronRight className="size-3 opacity-50 ml-auto" />
+                  <ChevronDown className="size-3 opacity-40" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={6} className="w-[200px] sm:w-[220px] p-1.5">
+              <DropdownMenuContent align="start" sideOffset={6} className="w-[220px] sm:w-[240px] p-1.5 shadow-lg border-border/50">
                 {MODES.map((mode) => {
                   const ModeIcon = mode.icon
                   const isActive = activeMode === mode.key
@@ -956,14 +963,20 @@ export default function AITutor() {
                     <DropdownMenuItem
                       key={mode.key}
                       onClick={() => handleModeChange(mode.key)}
-                      className={cn('flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs cursor-pointer', isActive && 'bg-emerald-500/10')}
+                      className={cn(
+                        'flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs cursor-pointer transition-all',
+                        isActive ? 'bg-emerald-500/10' : 'hover:bg-muted/60'
+                      )}
                     >
-                      <div className={cn('flex size-7 items-center justify-center rounded-md border', isActive ? mode.bgColor : 'border-border/50')}>
-                        <ModeIcon className={cn('size-3.5', isActive ? mode.color : 'text-muted-foreground')} />
+                      <div className={cn(
+                        'flex size-8 items-center justify-center rounded-lg',
+                        isActive ? mode.bgColor : 'border border-border/50 bg-muted/40'
+                      )}>
+                        <ModeIcon className={cn('size-3.5', isActive ? mode.color : 'text-muted-foreground/60')} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={cn('font-medium', isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground')}>{mode.label}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">
+                        <p className="text-[10px] text-muted-foreground/60 truncate mt-0.5">
                           {mode.key === 'explain' ? 'Detailed explanations with examples' :
                            mode.key === 'simplify' ? 'Simple, beginner-friendly language' :
                            mode.key === 'quiz' ? 'Interactive questioning' :
@@ -973,7 +986,9 @@ export default function AITutor() {
                            'Code writing, debugging & optimization'}
                         </p>
                       </div>
-                      {isActive && <div className="size-1.5 rounded-full bg-emerald-500 shrink-0" />}
+                      {isActive && (
+                        <div className="size-1.5 rounded-full bg-emerald-500 shrink-0 ring-2 ring-emerald-500/20" />
+                      )}
                     </DropdownMenuItem>
                   )
                 })}
@@ -986,19 +1001,19 @@ export default function AITutor() {
               <Badge
                 variant="outline"
                 className={cn(
-                  'shrink-0 text-xs gap-1 cursor-pointer transition-colors border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 hidden sm:flex max-w-[120px] md:max-w-none'
+                  'shrink-0 text-xs gap-1 cursor-pointer transition-colors border-emerald-500/20 bg-emerald-500/[0.04] text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 hidden sm:flex max-w-[120px] md:max-w-none'
                 )}
                 onClick={() => setActiveTopic(null)}
               >
                 <BookOpen className="size-3 shrink-0" />
                 <span className="truncate">{activeTopicCard.name}</span>
-                <X className="size-2.5 ml-0.5 opacity-60 shrink-0" />
+                <X className="size-2.5 ml-0.5 opacity-50 shrink-0" />
               </Badge>
             )}
 
             <div className={cn(
-              'shrink-0 flex items-center gap-1.5 px-1 sm:px-2 py-1 rounded-full text-[10px] font-medium',
-              isTyping ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+              'shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium',
+              isTyping ? 'bg-amber-500/8 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/8 text-emerald-600 dark:text-emerald-400'
             )}>
               <span className={cn('size-1.5 rounded-full', isTyping ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500')} />
               <span className="hidden sm:inline">{isTyping ? 'Thinking' : 'Online'}</span>
@@ -1006,28 +1021,28 @@ export default function AITutor() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto min-h-0 pb-12">
-          <div className="max-w-3xl mx-auto p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto w-full scroll-smooth scrollbar-thin">
+          <div className="w-full max-w-3xl mx-auto flex flex-col gap-4 px-4 py-6">
             {messages.length === 0 && !isTyping && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center justify-center py-8 sm:py-12 md:py-20"
+                className="flex flex-col items-center justify-center py-10 sm:py-14 md:py-16"
               >
                 <motion.div
-                  className="flex size-12 sm:size-14 md:size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-xl shadow-emerald-500/20 mb-3 sm:mb-4"
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                  className="flex size-14 sm:size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-xl shadow-emerald-500/20 mb-4"
+                  animate={{ scale: [1, 1.05, 1], rotate: [0, -3, 3, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                 >
-                  <Bot className="size-8" />
+                  <Bot className="size-7 sm:size-8" />
                 </motion.div>
-                <h2 className="text-lg sm:text-xl font-bold mb-1">Hi! I&apos;m your AI Tutor</h2>
-                <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 text-center max-w-md">
-                  Select a topic and mode to get started, or type your question below.
+                <h2 className="text-xl sm:text-2xl font-bold mb-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">How can I help you today?</h2>
+                <p className="text-sm text-muted-foreground/60 mb-6 sm:mb-7 text-center max-w-md leading-relaxed">
+                  Choose a learning mode below or type your question
                 </p>
 
-                <div className="w-full max-w-lg mb-4 sm:mb-6">
-                  <div className="grid grid-cols-4 sm:grid-cols-4 gap-1.5 sm:gap-2">
+<div className="w-full max-w-xl mb-5 sm:mb-6">
+  <div className="grid grid-cols-4 gap-2">
                     {MODES.map((mode) => {
                       const Icon = mode.icon
                       return (
@@ -1035,29 +1050,31 @@ export default function AITutor() {
                           key={mode.key}
                           onClick={() => handleModeChange(mode.key)}
                           className={cn(
-                            'flex flex-col items-center gap-1 rounded-lg sm:rounded-xl border p-1.5 sm:p-3 transition-all hover:shadow-md bg-card',
-                            activeMode === mode.key && 'border-emerald-500/30 bg-emerald-500/5'
+                            'flex flex-col items-center gap-1.5 rounded-xl border border-border/60 p-2.5 sm:p-3.5 transition-all bg-card/50 hover:bg-card hover:border-border hover:shadow-sm',
+                            activeMode === mode.key && 'border-emerald-500/40 bg-emerald-500/5 ring-1 ring-emerald-500/20'
                           )}
                         >
-                          <Icon className={cn('size-3.5 sm:size-5', mode.color)} />
-                          <span className="text-[9px] sm:text-[11px] font-medium truncate w-full text-center">{mode.label}</span>
+                          <div className={cn('flex size-7 sm:size-8 items-center justify-center rounded-lg transition-colors', activeMode === mode.key ? mode.bgColor : 'bg-muted/60')}>
+                            <Icon className={cn('size-3.5 sm:size-4', mode.color)} />
+                          </div>
+                          <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground/80 text-center leading-tight">{mode.label}</span>
                         </button>
                       )
                     })}
                   </div>
                 </div>
 
-                <div className="w-full max-w-lg">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <Sparkles className="size-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground font-medium">Suggested Questions</span>
+<div className="w-full max-w-xl">
+  <div className="flex items-center gap-1.5 mb-2.5">
+                    <Sparkles className="size-3.5 text-muted-foreground/50" />
+                    <span className="text-xs text-muted-foreground/60 font-medium">Suggested Questions</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {suggestions.slice(0, 4).map((q) => (
                       <button
                         key={q}
                         onClick={() => handleSendMessage(q)}
-                        className="rounded-full border bg-card px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs text-muted-foreground transition-all hover:border-emerald-500/40 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/5 hover:shadow-sm"
+                        className="rounded-lg border border-border/50 bg-card/50 px-3 py-2 text-xs text-muted-foreground/70 transition-all hover:border-emerald-500/30 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/5"
                       >
                         {q}
                       </button>
@@ -1092,30 +1109,30 @@ export default function AITutor() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className={cn('group flex items-start gap-3', msg.role === 'user' ? 'flex-row-reverse' : '')}
+                  className={cn('group flex items-start gap-2.5', msg.role === 'user' ? 'flex-row-reverse' : '')}
                 >
                   {msg.role === 'assistant' ? (
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-sm">
-                      <Bot className="size-4" />
+                    <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-sm ring-2 ring-background mt-0.5">
+                      <Bot className="size-3.5" />
                     </div>
                   ) : (
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground text-xs font-semibold shadow-sm">
+                    <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold ring-2 ring-background mt-0.5">
                       RA
                     </div>
                   )}
 
-                  <div className="relative max-w-[90%] sm:max-w-[85%] md:max-w-[80%]">
+                  <div className="relative max-w-[85%] sm:max-w-[80%] md:max-w-[75%]">
                     <div
                       className={cn(
-                        'rounded-2xl px-4 py-3 text-sm leading-relaxed',
+                        'rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
                         msg.role === 'user'
-                          ? 'rounded-tr-sm bg-gradient-to-r from-emerald-500 to-teal-600 text-white'
-                          : 'rounded-tl-sm bg-muted'
+                          ? 'rounded-tr-sm bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm'
+                          : 'rounded-tl-sm bg-muted shadow-xs'
                       )}
                     >
                       {msg.role === 'assistant' ? (
                         <div className="prose prose-neutral max-w-none dark:prose-invert prose-sm
-                          [&_p]:mb-2 [&_p:last-child]:mb-0
+                          [&_p]:mb-1.5 [&_p:last-child]:mb-0
                           [&_h1]:text-base [&_h1]:font-bold [&_h1]:mb-2
                           [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1.5
                           [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1
@@ -1124,12 +1141,12 @@ export default function AITutor() {
                           [&_li]:mb-0.5
                           [&_strong]:font-semibold
                           [&_em]:italic
-                          [&_blockquote]:border-l-2 [&_blockquote]:border-emerald-500/30 [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:my-2
+                          [&_blockquote]:border-l-[2px] [&_blockquote]:border-emerald-500/30 [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-muted-foreground/70 [&_blockquote]:my-2
                           [&_table]:text-xs [&_table]:w-full [&_table]:my-2
-                          [&_th]:border-b [&_th]:py-1.5 [&_th]:px-2 [&_th]:text-left [&_th]:font-semibold [&_th]:bg-muted
-                          [&_td]:border-b [&_td]:py-1.5 [&_td]:px-2 [&_td]:text-muted-foreground
-                          [&_hr]:my-3 [&_hr]:border-border
-                          [&_code]:bg-background/60 [&_code]:rounded [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-xs [&_code]:font-mono
+                          [&_th]:border-b [&_th]:py-1.5 [&_th]:px-2 [&_th]:text-left [&_th]:font-semibold [&_th]:bg-muted/50
+                          [&_td]:border-b [&_td]:py-1.5 [&_td]:px-2 [&_td]:text-muted-foreground/80
+                          [&_hr]:my-3 [&_hr]:border-border/50
+                          [&_code]:bg-foreground/5 [&_code]:rounded [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-xs [&_code]:font-mono [&_code]:border [&_code]:border-border/30
                         ">
                           <ReactMarkdown
                             components={{
@@ -1153,30 +1170,25 @@ export default function AITutor() {
                       )}
                     </div>
 
-                    <div className={cn('mt-1 px-1', msg.role === 'user' ? 'text-right' : '')}>
-                      <span className="text-[10px] text-muted-foreground/50">{formatTime(msg.timestamp)}</span>
+                    <div className={cn('mt-0.5 px-0.5', msg.role === 'user' ? 'text-right' : '')}>
+                      <span className="text-[10px] text-muted-foreground/40">{formatTime(msg.timestamp)}</span>
                     </div>
 
                     {msg.role === 'assistant' && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        whileHover={{ opacity: 1 }}
-                        className="absolute -top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <div className="flex items-center gap-0.5 rounded-md bg-background border shadow-sm">
+                      <div className="absolute -top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div className="flex items-center rounded-md bg-background border border-border/50 shadow-xs">
                           <button
                             onClick={() => handleCopyMessage(msg.id, msg.content)}
-                            className="flex items-center gap-1 px-2 py-1 text-muted-foreground text-[10px] hover:text-foreground transition-colors rounded-l-md"
+                            className="flex items-center gap-1 px-1.5 py-1 text-muted-foreground/60 hover:text-foreground transition-colors rounded-l-md"
                           >
                             {copiedId === msg.id ? <ClipboardCheck className="size-3 text-emerald-500" /> : <Clipboard className="size-3" />}
-                            {copiedId === msg.id ? 'Copied' : 'Copy'}
                           </button>
-                          <div className="w-px h-4 bg-border" />
-                          <button className="flex items-center px-1.5 py-1 text-muted-foreground text-[10px] hover:text-foreground transition-colors rounded-r-md">
+                          <div className="w-px h-3 bg-border/50" />
+                          <button className="flex items-center px-1.5 py-1 text-muted-foreground/60 hover:text-foreground transition-colors rounded-r-md">
                             <Save className="size-3" />
                           </button>
                         </div>
-                      </motion.div>
+                      </div>
                     )}
                   </div>
                 </motion.div>
@@ -1196,9 +1208,9 @@ export default function AITutor() {
               >
                 <button
                   onClick={handleRetry}
-                  className="flex items-center gap-1.5 rounded-full border bg-card px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/40 transition-all shadow-sm"
+                  className="flex items-center gap-1.5 rounded-lg border border-border/50 bg-card/50 px-3 py-1.5 text-xs text-muted-foreground/60 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all"
                 >
-                  <RefreshCw className="size-3 sm:size-3.5" />
+                  <RefreshCw className="size-3" />
                   <span>Retry</span>
                 </button>
               </motion.div>
@@ -1207,12 +1219,12 @@ export default function AITutor() {
             {messages.length > 0 && !isTyping && (
               <div className="pt-1 pb-2">
                 <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-                  <Sparkles className="size-3 shrink-0 text-muted-foreground" />
+                  <Sparkles className="size-3 shrink-0 text-muted-foreground/40" />
                   {suggestions.slice(0, 4).map((q) => (
                     <button
                       key={q}
                       onClick={() => handleSendMessage(q)}
-                      className="shrink-0 rounded-full border bg-background px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] text-muted-foreground transition-all whitespace-nowrap hover:border-emerald-500/40 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/5"
+                      className="shrink-0 rounded-lg border border-border/40 bg-card/40 px-2.5 py-1.5 text-[11px] text-muted-foreground/60 transition-all whitespace-nowrap hover:border-emerald-500/30 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/5"
                     >
                       {q}
                     </button>
@@ -1225,19 +1237,18 @@ export default function AITutor() {
           </div>
         </div>
 
-        <div className="shrink-0 px-3 md:px-4 pb-2 md:pb-3">
-          <div className="max-w-3xl mx-auto">
-            <div className="flex items-center justify-between gap-2 rounded-2xl border border-border/50 bg-background/70 backdrop-blur-xl px-3 py-2.5 min-h-[52px] shadow-lg shadow-black/5 focus-within:shadow-xl focus-within:shadow-emerald-500/5 focus-within:border-emerald-500/30 transition-all duration-300">
-              <div className="hidden sm:flex items-center gap-0.5 pb-0.5">
+        <div className="w-full border-t border-border/40 bg-transparent pt-3 pb-6 px-4 shrink-0">
+          <div className="w-full max-w-3xl mx-auto relative flex items-center gap-1.5 bg-background border border-border/50 rounded-2xl shadow-xs px-3 py-2 min-h-[52px] focus-within:ring-2 focus-within:ring-emerald-500/15 focus-within:border-emerald-500/30 transition-all duration-300">
+              <div className="hidden sm:flex items-center gap-0.5 pr-0.5">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
                       type="button"
                       onClick={() => handleSendMessage(suggestions[0])}
-                      className="size-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                      className="size-7 rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
                       title="Explain"
                     >
-                      <BookOpen className="size-4" />
+                      <BookOpen className="size-3.5" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="top" sideOffset={4}><p>Explain</p></TooltipContent>
@@ -1247,10 +1258,10 @@ export default function AITutor() {
                     <button
                       type="button"
                       onClick={() => { setActiveMode('quiz'); handleSendMessage(`Quiz me on ${activeTopicCard?.name || 'this topic'}`) }}
-                      className="size-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                      className="size-7 rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
                       title="Quiz me"
                     >
-                      <GraduationCap className="size-4" />
+                      <GraduationCap className="size-3.5" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="top" sideOffset={4}><p>Quiz me</p></TooltipContent>
@@ -1260,14 +1271,15 @@ export default function AITutor() {
                     <button
                       type="button"
                       disabled
-                      className="size-8 rounded-lg flex items-center justify-center text-muted-foreground/40 cursor-not-allowed"
+                      className="size-7 rounded-lg flex items-center justify-center text-muted-foreground/20 cursor-not-allowed"
                       title="Upload PDF (coming soon)"
                     >
-                      <FileText className="size-4" />
+                      <FileText className="size-3.5" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="top" sideOffset={4}><p>Upload PDF (coming soon)</p></TooltipContent>
                 </Tooltip>
+                <div className="w-px h-5 bg-border/40 mx-0.5" />
               </div>
 
               <textarea
@@ -1282,22 +1294,19 @@ export default function AITutor() {
                 }
                 disabled={isTyping}
                 rows={1}
-                className="flex-1 resize-none bg-transparent text-sm leading-relaxed outline-none placeholder:text-muted-foreground/60 min-h-[32px] max-h-[160px] py-2 disabled:opacity-50"
+                className="flex-1 resize-none bg-transparent text-sm leading-relaxed outline-none placeholder:text-muted-foreground/40 min-h-[28px] max-h-[160px] py-1.5 disabled:opacity-50"
               />
 
               <Button
                 size="icon"
                 onClick={() => handleSendMessage()}
                 disabled={!inputValue.trim() || isTyping}
-                className="shrink-0 size-8 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-md shadow-emerald-500/20 disabled:opacity-40"
+                className="shrink-0 size-8 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-sm shadow-emerald-500/20 disabled:opacity-30 disabled:shadow-none"
               >
-                <Send className="size-4" />
+                <Send className="size-3.5" />
               </Button>
-            </div>
           </div>
         </div>
-
-        <div className="h-16 md:hidden shrink-0" />
       </div>
     </div>
   )

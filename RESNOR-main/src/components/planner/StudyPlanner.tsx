@@ -112,32 +112,32 @@ const COURSE_CONFIG: Record<
 > = {
   DS: {
     name: 'Data Structures',
-    bg: 'bg-emerald-500/15',
-    border: 'border-emerald-500/30',
+    bg: 'bg-emerald-500/10',
+    border: 'border-l-4 border-l-emerald-500 border-white/5',
     text: 'text-emerald-700 dark:text-emerald-300',
     solid: 'bg-emerald-500',
     dot: 'bg-emerald-500',
   },
   AI: {
     name: 'Artificial Intelligence',
-    bg: 'bg-teal-500/15',
-    border: 'border-teal-500/30',
+    bg: 'bg-teal-500/10',
+    border: 'border-l-4 border-l-teal-500 border-white/5',
     text: 'text-teal-700 dark:text-teal-300',
     solid: 'bg-teal-500',
     dot: 'bg-teal-500',
   },
   DB: {
     name: 'Database Systems',
-    bg: 'bg-amber-500/15',
-    border: 'border-amber-500/30',
+    bg: 'bg-amber-500/10',
+    border: 'border-l-4 border-l-amber-500 border-white/5',
     text: 'text-amber-700 dark:text-amber-300',
     solid: 'bg-amber-500',
     dot: 'bg-amber-500',
   },
   SE: {
     name: 'Software Engineering',
-    bg: 'bg-rose-500/15',
-    border: 'border-rose-500/30',
+    bg: 'bg-rose-500/10',
+    border: 'border-l-4 border-l-rose-500 border-white/5',
     text: 'text-rose-700 dark:text-rose-300',
     solid: 'bg-rose-500',
     dot: 'bg-rose-500',
@@ -479,8 +479,8 @@ function SessionBlock({
         }}
         onClick={() => onEdit(session)}
         className={cn(
-          'rounded-md px-1.5 py-1 cursor-pointer h-full',
-          'border transition-shadow hover:shadow-md hover:brightness-110',
+          'rounded-lg px-3 py-2 cursor-pointer h-full',
+          'border border-white/5 transition-shadow hover:shadow-md',
           'overflow-hidden select-none',
           cfg.bg,
           cfg.border,
@@ -488,11 +488,14 @@ function SessionBlock({
       >
         <div className="flex items-start justify-between gap-0.5">
           <div className="min-w-0 flex-1">
-            <p className={cn('text-[11px] font-semibold leading-tight truncate', cfg.text)}>
-              {session.course}: {session.topic}
+            <p className={cn('text-[11px] font-semibold leading-none', cfg.text)}>
+              {session.course}
+            </p>
+            <p className="text-[10px] text-muted-foreground leading-tight mt-0.5 truncate">
+              {session.topic}
             </p>
             {height > 36 && (
-              <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
+              <p className="text-[10px] text-muted-foreground/60 mt-0.5 leading-tight">
                 {formatTime(session.startHour, session.startMinute)} &middot; {session.duration} min
               </p>
             )}
@@ -529,8 +532,8 @@ function TaskItem({
       exit={{ opacity: 0, x: 16, height: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
       transition={{ duration: 0.25, delay: index * 0.04 }}
       className={cn(
-        'flex items-center gap-2.5 rounded-lg border p-2.5 transition-all group',
-        task.completed ? 'opacity-50' : 'hover:bg-muted/40',
+        'flex items-center gap-2.5 rounded-lg border border-white/5 p-2.5 transition-all group',
+        task.completed ? 'opacity-40' : 'hover:bg-white/[0.03]',
         'mb-2',
       )}
     >
@@ -543,24 +546,28 @@ function TaskItem({
         <p
           className={cn(
             'text-sm leading-snug',
-            task.completed && 'line-through text-muted-foreground',
+            task.completed && 'text-muted-foreground',
           )}
         >
           {task.title}
         </p>
-        <p className={cn('text-[10px] font-medium mt-0.5', dl.className)}>
-          {dl.text}
-        </p>
-      </div>
-      <Badge
-        className={cn(
-          'border-0 text-[10px] px-1.5 py-0 shrink-0',
-          pc.bg,
-          pc.text,
+        {!task.completed && (
+          <p className={cn('text-[10px] font-medium mt-0.5', dl.className)}>
+            {dl.text}
+          </p>
         )}
-      >
-        {pc.label}
-      </Badge>
+      </div>
+      {!task.completed && (
+        <Badge
+          className={cn(
+            'border-0 text-[10px] px-1.5 py-0 shrink-0',
+            pc.bg,
+            pc.text,
+          )}
+        >
+          {pc.label}
+        </Badge>
+      )}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -708,7 +715,7 @@ export default function StudyPlanner() {
 
   // --- Render ---
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-slate-900/40 min-h-screen">
       {/* ================================================================ */}
       {/* Header */}
       {/* ================================================================ */}
@@ -753,104 +760,98 @@ export default function StudyPlanner() {
       {/* ================================================================ */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {/* Weekly Study Hours */}
-        <Card className="overflow-hidden">
-          <CardContent className="pt-0">
-            <div className="flex items-center gap-3 py-1">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
-                <BookOpen className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-muted-foreground">Weekly Study Hours</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                    {weeklyHours}
-                  </span>
-                  <span className="text-xs text-muted-foreground">/ {weeklyGoalHours}h goal</span>
-                </div>
-                <Progress value={weeklyProgress} className="h-1.5 mt-1.5" />
-              </div>
+        <div className="bg-white/[0.02] dark:bg-white/[0.02] backdrop-blur-md border border-white/5 shadow-xl rounded-2xl p-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
+              <BookOpen className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-muted-foreground">Weekly Study Hours</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                  {weeklyHours}
+                </span>
+                <span className="text-xs text-muted-foreground">/ {weeklyGoalHours}h goal</span>
+              </div>
+              <Progress value={weeklyProgress} className="h-1.5 mt-1.5" />
+            </div>
+          </div>
+        </div>
 
         {/* Tasks Completed */}
-        <Card className="overflow-hidden">
-          <CardContent className="pt-0">
-            <div className="flex items-center gap-3 py-1">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500/10">
-                <CheckCircle2 className="h-5 w-5 text-teal-600 dark:text-teal-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-muted-foreground">Tasks Completed</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold tabular-nums text-teal-600 dark:text-teal-400">
-                    {completedTasksCount}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    / {tasks.length} tasks
-                  </span>
-                </div>
-                <Progress
-                  value={tasks.length > 0 ? (completedTasksCount / tasks.length) * 100 : 0}
-                  className="h-1.5 mt-1.5"
-                />
-              </div>
+        <div className="bg-white/[0.02] dark:bg-white/[0.02] backdrop-blur-md border border-white/5 shadow-xl rounded-2xl p-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500/10">
+              <CheckCircle2 className="h-5 w-5 text-teal-600 dark:text-teal-400" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-muted-foreground">Tasks Completed</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-bold tabular-nums text-teal-600 dark:text-teal-400">
+                  {completedTasksCount}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  / {tasks.length} tasks
+                </span>
+              </div>
+              <Progress
+                value={tasks.length > 0 ? (completedTasksCount / tasks.length) * 100 : 0}
+                className="h-1.5 mt-1.5"
+              />
+            </div>
+          </div>
+        </div>
 
         {/* Study Streak */}
-        <Card className="overflow-hidden">
-          <CardContent className="pt-0">
-            <div className="flex items-center gap-3 py-1">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10">
-                <Flame className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+        <div className="bg-white/[0.02] dark:bg-white/[0.02] backdrop-blur-md border border-white/5 shadow-xl rounded-2xl p-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10">
+              <Flame className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-muted-foreground">Study Streak</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-bold tabular-nums text-amber-600 dark:text-amber-400">
+                  5
+                </span>
+                <span className="text-xs text-muted-foreground">consecutive days</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-muted-foreground">Study Streak</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold tabular-nums text-amber-600 dark:text-amber-400">
-                    5
-                  </span>
-                  <span className="text-xs text-muted-foreground">consecutive days</span>
-                </div>
-                <div className="flex gap-0.5 mt-1.5">
-                  {DAY_NAMES.map((_, i) => (
-                    <div
-                      key={i}
-                      className={cn(
-                        'h-1.5 flex-1 rounded-full',
-                        i < 5 ? 'bg-amber-500' : 'bg-muted',
-                      )}
-                    />
-                  ))}
-                </div>
+              <div className="flex gap-0.5 mt-1.5">
+                {DAY_NAMES.map((_, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      'h-1.5 flex-1 rounded-full',
+                      i < 5 ? 'bg-amber-500' : 'bg-muted',
+                    )}
+                  />
+                ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* ================================================================ */}
       {/* Main Content */}
       {/* ================================================================ */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full">
         {/* -------------------------------------------------------------- */}
         {/* Calendar */}
         {/* -------------------------------------------------------------- */}
-        <Card className="lg:col-span-2 overflow-hidden">
-          <CardHeader className="pb-3">
+        <div className="lg:col-span-8 bg-white/[0.02] dark:bg-white/[0.02] backdrop-blur-md border border-white/5 shadow-xl rounded-2xl overflow-hidden max-h-[750px] overflow-y-auto pr-2 scrollbar-thin">
+          <div className="p-6 pb-3">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-base flex items-center gap-2">
+                <p className="text-base font-semibold flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-emerald-500" />
                   {isMobile ? 'Day Schedule' : 'Weekly Schedule'}
-                </CardTitle>
-                <CardDescription>
+                </p>
+                <p className="text-sm text-muted-foreground">
                   {isMobile
                     ? `${DAY_NAMES[mobileDay]}, ${weekDates[mobileDay].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
                     : `${sessions.length} sessions this week`}
-                </CardDescription>
+                </p>
               </div>
               {isMobile && (
                 <div className="flex items-center gap-1">
@@ -866,279 +867,276 @@ export default function StudyPlanner() {
                 </div>
               )}
             </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            {/* Day Headers */}
-            <div className="flex border-b bg-muted/30">
-              {/* Time column spacer */}
-              <div className="w-12 shrink-0 hidden sm:block" />
+          </div>
 
-              {displayDayIndices.map((di) => {
-                const isToday = di === TODAY_IDX
-                const isDragOver = dragOverDay === di
-                return (
-                  <div
-                    key={di}
+          {/* Day Headers */}
+          <div className="flex border-b border-white/5 bg-white/[0.02] mx-6">
+            <div className="w-12 shrink-0 hidden sm:block" />
+
+            {displayDayIndices.map((di) => {
+              const isToday = di === TODAY_IDX
+              const isDragOver = dragOverDay === di
+              return (
+                <div
+                  key={di}
+                  className={cn(
+                    'flex-1 py-2.5 text-center border-r border-white/5 last:border-r-0 transition-colors',
+                    isToday && 'bg-emerald-500/5',
+                    isDragOver && !isMobile && 'bg-emerald-500/10 ring-2 ring-inset ring-emerald-500/30',
+                  )}
+                  onDragOver={!isMobile ? handleDragOverDay(di) : undefined}
+                  onDrop={!isMobile ? handleDropOnDay(di) : undefined}
+                  onDragLeave={() => setDragOverDay(null)}
+                >
+                  <span
                     className={cn(
-                      'flex-1 py-2.5 text-center border-r last:border-r-0 transition-colors',
-                      isToday && 'bg-emerald-500/5',
-                      isDragOver && !isMobile && 'bg-emerald-500/10 ring-2 ring-inset ring-emerald-500/30',
+                      'text-xs font-semibold',
+                      isToday
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-foreground',
                     )}
-                    onDragOver={!isMobile ? handleDragOverDay(di) : undefined}
-                    onDrop={!isMobile ? handleDropOnDay(di) : undefined}
-                    onDragLeave={() => setDragOverDay(null)}
                   >
-                    <span
-                      className={cn(
-                        'text-xs font-semibold',
-                        isToday
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : 'text-foreground',
-                      )}
-                    >
-                      {DAY_NAMES[di]}
-                    </span>
-                    <span className="ml-1 text-[10px] text-muted-foreground">
-                      {weekDates[di].getDate()}
-                    </span>
-                    {isToday && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mx-auto mt-0.5" />
-                    )}
-                  </div>
-                )
-              })}
+                    {DAY_NAMES[di]}
+                  </span>
+                  <span className="ml-1 text-[10px] text-muted-foreground">
+                    {weekDates[di].getDate()}
+                  </span>
+                  {isToday && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mx-auto mt-0.5" />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Calendar Body */}
+          <div className="flex px-6 pb-6" style={{ minHeight: TOTAL_HEIGHT }}>
+            {/* Time Labels */}
+            <div className="w-12 shrink-0 hidden sm:block relative">
+              {HOURS.map((hour) => (
+                <div
+                  key={hour}
+                  className="absolute right-2 -translate-y-2 text-[10px] text-muted-foreground font-medium tabular-nums"
+                  style={{ top: (hour - START_HOUR) * HOUR_HEIGHT }}
+                >
+                  {formatHourLabel(hour)}
+                </div>
+              ))}
             </div>
 
-            {/* Calendar Body */}
-            <ScrollArea className="h-[520px]">
-              <div className="flex" style={{ minHeight: TOTAL_HEIGHT }}>
-                {/* Time Labels */}
-                <div className="w-12 shrink-0 hidden sm:block relative">
+            {/* Day Columns */}
+            {displayDayIndices.map((dayIdx) => {
+              const daySessions = sessions
+                .filter((s) => s.dayIndex === dayIdx)
+                .sort(
+                  (a, b) =>
+                    a.startHour * 60 + a.startMinute -
+                    (b.startHour * 60 + b.startMinute),
+                )
+
+              return (
+                <div
+                  key={dayIdx}
+                  className="flex-1 relative border-r border-white/5 last:border-r-0"
+                  style={{ height: TOTAL_HEIGHT }}
+                >
+                  {/* Hour grid lines */}
                   {HOURS.map((hour) => (
                     <div
                       key={hour}
-                      className="absolute right-2 -translate-y-2 text-[10px] text-muted-foreground font-medium tabular-nums"
+                      className="absolute inset-x-0 border-t border-white/5"
                       style={{ top: (hour - START_HOUR) * HOUR_HEIGHT }}
-                    >
-                      {formatHourLabel(hour)}
-                    </div>
+                    />
                   ))}
-                </div>
 
-                {/* Day Columns */}
-                {displayDayIndices.map((dayIdx) => {
-                  const daySessions = sessions
-                    .filter((s) => s.dayIndex === dayIdx)
-                    .sort(
-                      (a, b) =>
-                        a.startHour * 60 + a.startMinute -
-                        (b.startHour * 60 + b.startMinute),
-                    )
+                  {/* Today highlight */}
+                  {dayIdx === TODAY_IDX && (
+                    <div className="absolute inset-0 bg-emerald-500/[0.03] pointer-events-none" />
+                  )}
 
-                  return (
-                    <div
-                      key={dayIdx}
-                      className="flex-1 relative border-r last:border-r-0"
-                      style={{ height: TOTAL_HEIGHT }}
-                    >
-                      {/* Hour grid lines */}
-                      {HOURS.map((hour) => (
-                        <div
-                          key={hour}
-                          className="absolute inset-x-0 border-t border-border/40"
-                          style={{ top: (hour - START_HOUR) * HOUR_HEIGHT }}
-                        />
-                      ))}
+                  {/* Session blocks */}
+                  <AnimatePresence mode="popLayout">
+                    {daySessions.map((session) => (
+                      <SessionBlock
+                        key={session.id}
+                        session={session}
+                        onEdit={handleEditSession}
+                      />
+                    ))}
+                  </AnimatePresence>
 
-                      {/* Today highlight */}
-                      {dayIdx === TODAY_IDX && (
-                        <div className="absolute inset-0 bg-emerald-500/[0.03] pointer-events-none" />
-                      )}
-
-                      {/* Session blocks */}
-                      <AnimatePresence mode="popLayout">
-                        {daySessions.map((session) => (
-                          <SessionBlock
-                            key={session.id}
-                            session={session}
-                            onEdit={handleEditSession}
-                          />
-                        ))}
-                      </AnimatePresence>
-
-                      {/* Empty state for this day */}
-                      {daySessions.length === 0 && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                          <p className="text-[11px] text-muted-foreground/40">No sessions</p>
-                        </div>
-                      )}
+                  {/* Empty state for this day */}
+                  {daySessions.length === 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <p className="text-[11px] text-muted-foreground/40">No sessions</p>
                     </div>
-                  )
-                })}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
 
         {/* -------------------------------------------------------------- */}
         {/* Right Panel: Today's Schedule + Tasks */}
         {/* -------------------------------------------------------------- */}
-        <div className="space-y-6">
+        <div className="lg:col-span-4 space-y-6">
           {/* Today's Schedule */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Clock className="w-4 h-4 text-teal-500" />
-                Today&apos;s Schedule
-              </CardTitle>
-              <CardDescription>
-                {todaySessions.length === 0
-                  ? 'Nothing planned — add a session!'
-                  : `${todaySessions.length} session${todaySessions.length !== 1 ? 's' : ''} planned`}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {todaySessions.length === 0 ? (
-                <div className="flex flex-col items-center gap-2 py-6 text-muted-foreground">
-                  <Calendar className="w-8 h-8 opacity-30" />
-                  <p className="text-sm">Free day!</p>
-                  <Button variant="outline" size="sm" onClick={handleOpenAdd}>
-                    <Plus className="w-3.5 h-3.5" />
-                    Add Session
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <AnimatePresence>
-                    {todaySessions.map((session, idx) => {
-                      const cfg = COURSE_CONFIG[session.course]
-                      const pc = PRIORITY_CONFIG[session.priority]
-                      return (
-                        <motion.div
-                          key={session.id}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          transition={{ delay: idx * 0.06 }}
-                          onClick={() => handleEditSession(session)}
-                          className={cn(
-                            'flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer',
-                            'transition-all hover:brightness-110',
-                            cfg.bg,
-                            cfg.border,
-                          )}
-                        >
-                          <div className={cn('w-1 self-stretch rounded-full shrink-0', cfg.solid)} />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium leading-tight truncate">
-                              {session.course}: {session.topic}
-                            </p>
-                            <p className="text-[11px] text-muted-foreground mt-0.5">
-                              {formatTime(session.startHour, session.startMinute)} &middot;{' '}
-                              {session.duration} min
-                            </p>
-                          </div>
-                          <Badge
-                            className={cn('border-0 text-[10px] px-1.5 py-0 shrink-0', pc.bg, pc.text)}
-                          >
-                            {pc.label}
-                          </Badge>
-                        </motion.div>
-                      )
-                    })}
-                  </AnimatePresence>
-
-                  {/* Total today */}
-                  <div className="flex items-center justify-between pt-2 mt-1 border-t">
-                    <span className="text-xs text-muted-foreground">Total today</span>
-                    <span className="text-xs font-semibold tabular-nums">
-                      {(todaySessions.reduce((s, x) => s + x.duration, 0) / 60).toFixed(1)}h
-                    </span>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Task List */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <ListTodo className="w-4 h-4 text-amber-500" />
-                Tasks
-              </CardTitle>
-              <CardDescription>
-                {completedTasksCount} of {tasks.length} completed
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Add Task Form */}
-              <div className="flex gap-2 mb-3">
-                <Input
-                  placeholder="New task..."
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleAddTask()
-                  }}
-                  className="flex-1 h-8 text-sm"
-                />
-                <Select value={newTaskPriority} onValueChange={(v) => setNewTaskPriority(v as Priority)}>
-                  <SelectTrigger className="w-[100px] h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(PRIORITY_CONFIG) as Priority[]).map((p) => (
-                      <SelectItem key={p} value={p}>
-                        <span className="flex items-center gap-1.5">
-                          <span className={cn('w-1.5 h-1.5 rounded-full', PRIORITY_CONFIG[p].dot)} />
-                          {PRIORITY_CONFIG[p].label}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={handleAddTask}
-                      disabled={!newTaskTitle.trim()}
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Add task</TooltipContent>
-                </Tooltip>
+          <div className="bg-white/[0.02] dark:bg-white/[0.02] backdrop-blur-md border border-white/5 shadow-xl rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-base font-semibold flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-teal-500" />
+                  Today&apos;s Schedule
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {todaySessions.length === 0
+                    ? 'Nothing planned — add a session!'
+                    : `${todaySessions.length} session${todaySessions.length !== 1 ? 's' : ''} planned`}
+                </p>
               </div>
+            </div>
 
-              <Separator className="mb-3" />
-
-              {/* Task List */}
-              <ScrollArea className="max-h-[320px]">
+            {todaySessions.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-6 text-muted-foreground">
+                <Calendar className="w-8 h-8 opacity-30" />
+                <p className="text-sm">Free day!</p>
+                <Button variant="outline" size="sm" onClick={handleOpenAdd}>
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Session
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
                 <AnimatePresence>
-                  {tasks.map((task, i) => (
-                    <TaskItem
-                      key={task.id}
-                      task={task}
-                      index={i}
-                      onToggle={handleToggleTask}
-                      onDelete={handleDeleteTask}
-                    />
-                  ))}
+                  {todaySessions.map((session, idx) => {
+                    const cfg = COURSE_CONFIG[session.course]
+                    const pc = PRIORITY_CONFIG[session.priority]
+                    return (
+                      <motion.div
+                        key={session.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ delay: idx * 0.06 }}
+                        onClick={() => handleEditSession(session)}
+                        className={cn(
+                          'flex items-center gap-3 p-2.5 rounded-lg border border-white/5 cursor-pointer',
+                          'transition-all hover:brightness-110',
+                          cfg.bg,
+                        )}
+                      >
+                        <div className={cn('w-1 self-stretch rounded-full shrink-0', cfg.solid)} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium leading-tight truncate">
+                            {session.course}: {session.topic}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            {formatTime(session.startHour, session.startMinute)} &middot;{' '}
+                            {session.duration} min
+                          </p>
+                        </div>
+                        <Badge
+                          className={cn('border-0 text-[10px] px-1.5 py-0 shrink-0', pc.bg, pc.text)}
+                        >
+                          {pc.label}
+                        </Badge>
+                      </motion.div>
+                    )
+                  })}
                 </AnimatePresence>
 
-                {tasks.length === 0 && (
-                  <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
-                    <AlertCircle className="w-7 h-7 opacity-30" />
-                    <p className="text-sm">No tasks yet</p>
-                    <p className="text-xs">Add a task above to get started</p>
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
+                {/* Total today */}
+                <div className="flex items-center justify-between pt-2 mt-1 border-t border-white/5">
+                  <span className="text-xs text-muted-foreground">Total today</span>
+                  <span className="text-xs font-semibold tabular-nums">
+                    {(todaySessions.reduce((s, x) => s + x.duration, 0) / 60).toFixed(1)}h
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Task List */}
+          <div className="bg-white/[0.02] dark:bg-white/[0.02] backdrop-blur-md border border-white/5 shadow-xl rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-base font-semibold flex items-center gap-2">
+                  <ListTodo className="w-4 h-4 text-amber-500" />
+                  Tasks
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {completedTasksCount} of {tasks.length} completed
+                </p>
+              </div>
+            </div>
+
+            {/* Add Task Form */}
+            <div className="flex gap-2 mb-3 p-1.5 rounded-lg bg-slate-800/30 border border-white/5">
+              <Input
+                placeholder="New task..."
+                value={newTaskTitle}
+                onChange={(e) => setNewTaskTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddTask()
+                }}
+                className="flex-1 h-8 text-sm bg-slate-800/50 border-white/10"
+              />
+              <Select value={newTaskPriority} onValueChange={(v) => setNewTaskPriority(v as Priority)}>
+                <SelectTrigger className="w-[100px] h-8 text-xs bg-slate-800/50 border-white/10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(PRIORITY_CONFIG) as Priority[]).map((p) => (
+                    <SelectItem key={p} value={p}>
+                      <span className="flex items-center gap-1.5">
+                        <span className={cn('w-1.5 h-1.5 rounded-full', PRIORITY_CONFIG[p].dot)} />
+                        {PRIORITY_CONFIG[p].label}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={handleAddTask}
+                    disabled={!newTaskTitle.trim()}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Add task</TooltipContent>
+              </Tooltip>
+            </div>
+
+            <Separator className="mb-3 bg-white/5" />
+
+            {/* Task List */}
+            <div className="max-h-[320px] overflow-y-auto pr-1 space-y-1 scrollbar-thin">
+              <AnimatePresence>
+                {tasks.map((task, i) => (
+                  <TaskItem
+                    key={task.id}
+                    task={task}
+                    index={i}
+                    onToggle={handleToggleTask}
+                    onDelete={handleDeleteTask}
+                  />
+                ))}
+              </AnimatePresence>
+
+              {tasks.length === 0 && (
+                <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
+                  <AlertCircle className="w-7 h-7 opacity-30" />
+                  <p className="text-sm">No tasks yet</p>
+                  <p className="text-xs">Add a task above to get started</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

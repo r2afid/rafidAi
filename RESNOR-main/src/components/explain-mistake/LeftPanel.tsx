@@ -77,53 +77,45 @@ export default function LeftPanel({
   return (
     <div className="flex flex-col h-full gap-3">
       <div className="grid grid-cols-2 gap-2">
-        <Card className="bg-card/50 backdrop-blur-sm">
-          <CardContent className="flex items-center gap-2 p-3">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-600">
-              <XCircle className="size-4" />
-            </div>
-            <div>
-              <p className="text-[10px] text-muted-foreground">Wrong</p>
-              <p className="text-sm font-bold">{wrongCount}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card/50 backdrop-blur-sm">
-          <CardContent className="flex items-center gap-2 p-3">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
-              <Target className="size-4" />
-            </div>
-            <div>
-              <p className="text-[10px] text-muted-foreground">Accuracy</p>
-              <p className="text-sm font-bold">{accuracy}%</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card/50 backdrop-blur-sm col-span-2">
-          <CardContent className="flex items-center gap-2 p-3">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
-              <AlertTriangle className="size-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] text-muted-foreground">Most Common Mistake</p>
-              <p className="text-xs font-medium truncate">{mostCommonMistake}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card/50 backdrop-blur-sm col-span-2">
-          <CardContent className="flex items-center gap-2 p-3">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
-              <BarChart3 className="size-4" />
-            </div>
-            <div>
-              <p className="text-[10px] text-muted-foreground">Score</p>
-              <p className="text-sm font-bold">{attempt.score}%</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-card/60 backdrop-blur-xl rounded-xl border border-border/50 p-2.5 flex items-center gap-2.5">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-600">
+            <XCircle className="size-4" />
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground leading-tight">Wrong</p>
+            <p className="text-sm font-bold leading-tight">{wrongCount}</p>
+          </div>
+        </div>
+        <div className="bg-card/60 backdrop-blur-xl rounded-xl border border-border/50 p-2.5 flex items-center gap-2.5">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+            <Target className="size-4" />
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground leading-tight">Accuracy</p>
+            <p className="text-sm font-bold leading-tight">{accuracy}%</p>
+          </div>
+        </div>
+        <div className="bg-card/60 backdrop-blur-xl rounded-xl border border-border/50 col-span-2 p-2.5 flex items-center gap-2.5">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
+            <AlertTriangle className="size-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] text-muted-foreground leading-tight">Most Common Mistake</p>
+            <p className="text-xs font-medium truncate">{mostCommonMistake}</p>
+          </div>
+        </div>
+        <div className="bg-card/60 backdrop-blur-xl rounded-xl border border-border/50 col-span-2 p-2.5 flex items-center gap-2.5">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+            <BarChart3 className="size-4" />
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground leading-tight">Score</p>
+            <p className="text-sm font-bold leading-tight">{attempt.score}%</p>
+          </div>
+        </div>
       </div>
 
-      <Card className="bg-card/50 backdrop-blur-sm">
+      <Card className="bg-card/60 backdrop-blur-xl">
         <CardHeader className="p-3 pb-0">
           <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Question Review
@@ -139,10 +131,10 @@ export default function LeftPanel({
                   <button
                     key={q.id}
                     onClick={() => onSelectQuestion(q)}
-                    className={`w-full text-left p-2.5 rounded-lg border transition-all ${
+                    className={`w-full text-left p-2.5 rounded-lg border transition-all duration-200 ${
                       isSelected
-                        ? 'border-primary/50 bg-primary/5 shadow-sm'
-                        : 'border-transparent hover:border-border hover:bg-muted/50'
+                        ? 'border-primary/40 bg-primary/[0.04]'
+                        : 'border-transparent hover:border-border/60 hover:bg-muted/40'
                     } ${!q.isCorrect ? 'border-l-[3px] border-l-rose-500' : 'border-l-[3px] border-l-emerald-500'}`}
                   >
                     <div className="flex items-start gap-2.5">

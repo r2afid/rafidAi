@@ -11,6 +11,8 @@ import {
   ArrowLeft,
   ChevronRight,
   Trophy,
+  BookOpen,
+  AlertTriangle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -283,14 +285,12 @@ export default function TeacherQuizTaker() {
             <Loader2 className="size-8 animate-spin text-muted-foreground" />
           </div>
         ) : quizzes.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
-              <Brain className="size-12 text-muted-foreground/40" />
-              <p className="text-muted-foreground">No teacher quizzes available yet.</p>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center gap-4 py-16 text-center rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-md">
+            <Brain className="size-12 text-muted-foreground/40" />
+            <p className="text-muted-foreground">No teacher quizzes available yet.</p>
+          </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="w-full max-w-5xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 px-2">
             {quizzes.map((quiz) => {
               const attemptsLeft = quiz.maxAttempts - quiz.attemptCount
               const attemptsExhausted = attemptsLeft <= 0
@@ -300,72 +300,77 @@ export default function TeacherQuizTaker() {
                 onClick={() => !attemptsExhausted && startQuiz(quiz.id)}
                 disabled={attemptsExhausted}
                 className={cn(
-                  "group relative overflow-hidden rounded-xl border bg-card text-left transition-all hover:border-primary/50 hover:shadow-md",
-                  attemptsExhausted && "opacity-50 pointer-events-none"
+                  'bg-white dark:bg-card/10 border border-slate-200/60 dark:border-border/50 hover:border-emerald-500/30 rounded-2xl p-6 transition-all duration-300 flex flex-col justify-between group shadow-sm dark:shadow-none text-left',
+                  attemptsExhausted && 'opacity-40 pointer-events-none'
                 )}
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-base">{quiz.title}</CardTitle>
-                    <Badge
-                      variant="outline"
-                      className={cn('shrink-0 text-[11px]', difficultyColor[quiz.difficulty])}
-                    >
-                      {quiz.difficulty}
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-xs">{quiz.topic}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1.5">
-                      <Brain className="size-3.5" />
-                      {quiz.questionCount} questions
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="size-3.5" />
-                      {quiz.timeLimit} min
+                {/* Header */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="text-base font-semibold text-foreground truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                      {quiz.title}
+                    </h3>
+                    <span className="text-xs text-muted-foreground mt-0.5 block truncate">
+                      {quiz.topic}
                     </span>
                   </div>
                   {attemptsExhausted ? (
-                    <div className="flex items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-xs text-rose-600 dark:text-rose-400">
-                      <XCircle className="size-3.5 shrink-0" />
-                      No attempts remaining
-                    </div>
+                    <span className="shrink-0 flex items-center gap-1 rounded-full bg-rose-500/10 text-rose-500 px-2.5 py-1 text-[11px] font-medium border border-rose-500/20">
+                      <XCircle className="size-3" />
+                      Locked
+                    </span>
                   ) : quiz.myAttempt ? (
-                    <div className="space-y-1.5">
-                      <div
-                        className={cn(
-                          'flex items-center gap-2 rounded-lg border px-3 py-2 text-xs',
-                          quiz.myAttempt.score >= 70
-                            ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                            : 'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                        )}
-                      >
-                        {quiz.myAttempt.score >= 70 ? (
-                          <CheckCircle2 className="size-3.5 shrink-0" />
-                        ) : (
-                          <XCircle className="size-3.5 shrink-0" />
-                        )}
-                        Attempted: {quiz.myAttempt.correctCount}/{quiz.myAttempt.totalQuestions} (
-                        {quiz.myAttempt.score}%)
-                      </div>
-                      <div className="text-[11px] text-muted-foreground">
-                        {attemptsLeft} attempt{attemptsLeft !== 1 ? 's' : ''} remaining
-                      </div>
-                    </div>
+                    <span className={cn(
+                      'shrink-0 flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium border',
+                      quiz.myAttempt.score >= 70
+                        ? 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border-emerald-500/20'
+                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                    )}>
+                      {quiz.myAttempt.score >= 70 ? (
+                        <CheckCircle2 className="size-3" />
+                      ) : (
+                        <AlertTriangle className="size-3" />
+                      )}
+                      {quiz.myAttempt.score}%
+                    </span>
                   ) : (
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-1 text-xs text-primary/70">
-                        Take quiz
-                        <ChevronRight className="size-3" />
-                      </div>
-                      <div className="text-[11px] text-muted-foreground">
-                        {attemptsLeft} attempt{attemptsLeft !== 1 ? 's' : ''} remaining
-                      </div>
-                    </div>
+                    <span className="shrink-0 flex items-center gap-1 rounded-full bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 px-2.5 py-1 text-[11px] font-medium border border-emerald-500/20">
+                      <CheckCircle2 className="size-3" />
+                      Available
+                    </span>
                   )}
-                </CardContent>
+                </div>
+
+                {/* Metadata Footer */}
+                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-5 pt-4 border-t border-slate-200/60 dark:border-border/50">
+                  <span className="flex items-center gap-1.5">
+                    <Brain className="size-3.5" />
+                    {quiz.questionCount} Questions
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="size-3.5" />
+                    {quiz.timeLimit} min
+                  </span>
+                  {!attemptsExhausted && !quiz.myAttempt && (
+                    <span className="ml-auto flex items-center gap-1 text-emerald-500 dark:text-emerald-400 font-medium group-hover:translate-x-0.5 transition-transform">
+                      Start
+                      <ChevronRight className="size-3" />
+                    </span>
+                  )}
+                  {!attemptsExhausted && quiz.myAttempt && (
+                    <span className="ml-auto text-slate-400 dark:text-slate-500 text-[11px]">
+                      {attemptsLeft} attempt{attemptsLeft !== 1 ? 's' : ''} left
+                    </span>
+                  )}
+                </div>
+
+                {/* Locked Warning */}
+                {attemptsExhausted && (
+                  <div className="bg-rose-500/5 text-rose-400 border border-rose-500/10 rounded-xl px-3 py-2 text-xs mt-4 font-medium flex items-center gap-2">
+                    <XCircle className="size-3.5 shrink-0" />
+                    No attempts remaining
+                  </div>
+                )}
               </button>
             )}
             )}

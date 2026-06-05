@@ -207,7 +207,7 @@ export default function Home() {
                   exit={{ opacity: 0, y: -12, scale: 0.97, filter: 'blur(3px)' }}
                   transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
                   className={cn(
-                    resolvedPage === 'tutor' ? 'h-full overflow-hidden p-0' : 'h-full p-4 md:p-6 pb-20 md:pb-6',
+                    resolvedPage === 'tutor' ? 'h-[calc(100vh-56px)] overflow-hidden p-0' : 'h-full p-4 md:p-6 pb-20 md:pb-6',
                     'max-w-[1600px]'
                   )}
                 >

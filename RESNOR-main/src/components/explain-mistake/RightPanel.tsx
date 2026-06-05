@@ -21,6 +21,8 @@ import {
 } from 'lucide-react'
 import { useAppStore } from '@/stores/app'
 
+type RightPanelVariant = 'full' | 'misconceptions' | 'exercises'
+
 interface RightPanelProps {
   misconceptions: MisconceptionRecord[]
   exercises: RemediationExerciseData[]
@@ -29,6 +31,7 @@ interface RightPanelProps {
   onGenerateExercises?: () => void
   activeExplanation?: MistakeExplanationData | null
   question?: QuizQuestion | null
+  variant?: RightPanelVariant
 }
 
 const recoveryStatusConfig: Record<string, { label: string; color: string; icon: string }> = {
@@ -39,7 +42,7 @@ const recoveryStatusConfig: Record<string, { label: string; color: string; icon:
   REVIEWING: { label: 'Reviewing', color: 'text-violet-600 bg-violet-500/10', icon: '↻' },
 }
 
-export default function RightPanel({ misconceptions, exercises, loading, onCompleteExercise, onGenerateExercises, activeExplanation, question }: RightPanelProps) {
+export default function RightPanel({ misconceptions, exercises, loading, onCompleteExercise, onGenerateExercises, activeExplanation, question, variant = 'full' }: RightPanelProps) {
   const [expandedMisconception, setExpandedMisconception] = useState<string | null>(null)
   const [showAllMisconceptions, setShowAllMisconceptions] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -88,23 +91,17 @@ export default function RightPanel({ misconceptions, exercises, loading, onCompl
   if (loading) {
     return (
       <div className="flex flex-col h-full gap-3">
-        <Card className="bg-card/50 backdrop-blur-sm">
+        <Card className="bg-card/60 backdrop-blur-xl border-border/50 rounded-2xl shadow-none">
           <CardContent className="p-3">
             <Skeleton className="h-4 w-3/4 mb-2" />
             <Skeleton className="h-2 w-full" />
           </CardContent>
         </Card>
-        <Card className="bg-card/50 backdrop-blur-sm">
+        <Card className="bg-card/60 backdrop-blur-xl border-border/50 rounded-2xl shadow-none">
           <CardContent className="p-3 space-y-3">
             <Skeleton className="h-4 w-1/2" />
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
-          </CardContent>
-        </Card>
-        <Card className="bg-card/50 backdrop-blur-sm">
-          <CardContent className="p-3">
-            <Skeleton className="h-4 w-1/2 mb-2" />
-            <Skeleton className="h-[200px] w-full" />
           </CardContent>
         </Card>
       </div>
@@ -113,20 +110,23 @@ export default function RightPanel({ misconceptions, exercises, loading, onCompl
 
   return (
     <div className="flex flex-col h-full gap-3">
-      <Card className="bg-card/50 backdrop-blur-sm">
-        <CardContent className="p-3">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="size-4 text-emerald-600" />
-              <span className="text-xs font-semibold">Recovery Progress</span>
+      {variant !== 'exercises' && (
+        <Card className="bg-card/60 backdrop-blur-xl border-border/50 rounded-2xl shadow-none">
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="size-4 text-emerald-600" />
+                <span className="text-xs font-semibold">Recovery Progress</span>
+              </div>
+              <span className="text-xs font-bold text-emerald-600">{recoveryProgress}%</span>
             </div>
-            <span className="text-xs font-bold text-emerald-600">{recoveryProgress}%</span>
-          </div>
-          <Progress value={recoveryProgress} className="h-1.5" />
-        </CardContent>
-      </Card>
+            <Progress value={recoveryProgress} className="h-1.5" />
+          </CardContent>
+        </Card>
+      )}
 
-      <Card className="bg-card/50 backdrop-blur-sm">
+      {variant !== 'exercises' && (
+        <Card className="bg-card/60 backdrop-blur-xl border-border/50 rounded-2xl shadow-none">
         <CardHeader className="p-3 pb-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -225,26 +225,24 @@ export default function RightPanel({ misconceptions, exercises, loading, onCompl
               <p className="text-[10px] text-muted-foreground/60">Misconception clusters will appear here once the system detects a recurring conceptual pattern across your quiz evaluations.</p>
             </div>
           )}
-        </CardContent>
-      </Card>
 
-      <Card className="bg-card/50 backdrop-blur-sm">
-        <CardHeader className="p-3 pb-0">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="size-4 text-indigo-600" />
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Knowledge Dependency Map
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="p-3">
-          {activeExplanation && (gapsLoading ? (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="size-3 animate-spin" />
-              <span className="text-[11px]">Analyzing knowledge gaps...</span>
+          {activeExplanation && gapsLoading && (
+            <div className="mt-3 pt-3 border-t border-border/50">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="size-3 animate-spin" />
+                <span className="text-[11px]">Analyzing knowledge gaps...</span>
+              </div>
             </div>
-          ) : aiGaps.length > 0 ? (
-            <div>
+          )}
+
+          {activeExplanation && !gapsLoading && aiGaps.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-border/50">
+              <div className="flex items-center gap-2 mb-2">
+                <BarChart3 className="size-3.5 text-indigo-600" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Knowledge Gaps
+                </span>
+              </div>
               <div className="space-y-1">
                 {aiGaps.map((point, i) => (
                   <div key={i} className="flex items-start gap-2">
@@ -268,11 +266,14 @@ export default function RightPanel({ misconceptions, exercises, loading, onCompl
                 Save as Study Note
               </button>
             </div>
-          ) : null)}
+          )}
         </CardContent>
       </Card>
+      )}
 
-      <Card className="bg-card/50 backdrop-blur-sm">
+      {variant !== 'misconceptions' && (
+        <>
+      <Card className="bg-card/60 backdrop-blur-xl border-border/50 rounded-2xl shadow-none">
         <CardHeader className="p-3 pb-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -372,6 +373,8 @@ export default function RightPanel({ misconceptions, exercises, loading, onCompl
           {generating ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
           {generating ? 'Generating...' : 'Generate More Practice'}
         </Button>
+      )}
+        </>
       )}
     </div>
   )

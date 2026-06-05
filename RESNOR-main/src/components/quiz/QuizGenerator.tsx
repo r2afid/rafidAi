@@ -556,288 +556,283 @@ export default function QuizGenerator() {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="mx-auto max-w-6xl space-y-8 p-4 md:p-8"
+      className="mx-auto max-w-6xl space-y-6 p-4 md:p-8"
     >
       {/* Header */}
-      <div className="text-center">
-        <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-primary/10">
+      <div className="py-8 mb-8 text-center">
+        <div className="mx-auto mb-2 flex size-14 items-center justify-center rounded-full bg-primary/10">
           <Brain className="size-7 text-primary" />
         </div>
-        <h1 className="text-2xl font-bold">AI Quiz Generator</h1>
-        <p className="mt-2 text-muted-foreground">
+        <h1 className="mb-3 text-2xl font-bold">AI Quiz Generator</h1>
+        <p className="text-muted-foreground">
           Select topics, choose difficulty, and test your knowledge
         </p>
       </div>
 
-      {/* Two-column layout: Topics (left) + Trajectory (right) */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        {/* Left Column - Topic Selection */}
-        <div className="space-y-6 lg:col-span-2">
-          {/* Topic Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="size-5 text-primary" />
-                Select Topics
-              </CardTitle>
-              <CardDescription>
-                Choose one or more topics for your quiz ({selectedTopics.length} selected)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {TOPICS.map((topic, index) => {
-                  const isSelected = selectedTopics.includes(topic.id)
-                  return (
-                    <motion.label
-                      key={topic.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className={`relative flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-all ${
-                        isSelected
-                          ? 'border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/20'
-                          : 'hover:border-primary/30 hover:bg-muted/50'
-                      } ${isSelected ? 'border-l-4 border-l-emerald-500' : ''}`}
-                    >
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => toggleTopic(topic.id)}
-                      />
-                      <span className="text-lg">{topic.icon}</span>
-                      <span className="text-sm font-medium">{topic.title}</span>
-                      <AnimatePresence>
-                        {isSelected && (
-                          <motion.div
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0, opacity: 0 }}
-                            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                            className="ml-auto flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-500"
-                          >
-                            <Check className="size-3 text-white" />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.label>
-                  )
-                })}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Custom Topic Input */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <BookOpen className="size-5 text-primary" />
-                Or Type Your Own Topic
-              </CardTitle>
-              <CardDescription>
-                Enter any topic and the AI will generate questions for it
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={customTopic}
-                  onChange={(e) => setCustomTopic(e.target.value)}
-                  placeholder="e.g. Machine Learning, World History, Python Basics..."
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-                {customTopic && (
-                  <button
-                    onClick={() => setCustomTopic('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    âœ•
-                  </button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column - Improvement Trajectory */}
-        <div className="space-y-6">
-          {historyAttempts.length > 1 ? (
-            <Card className="sticky top-8">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="size-5 text-primary" />
-                    <CardTitle className="text-base">Improvement Trajectory</CardTitle>
-                  </div>
-                  <Button variant="ghost" size="icon" className="size-7" onClick={() => setShowFullTrajectory(true)}>
-                    <Maximize2 className="size-3.5" />
-                  </Button>
-                </div>
-                <CardDescription>Your score trend across quiz attempts</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig} className="h-[220px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={historyAttempts.map((a: any, i: number) => ({
-                      quiz: `#${i + 1}`,
-                      score: Math.round(a.score),
-                    }))}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis dataKey="quiz" tick={{ fontSize: 12 }} className="fill-muted-foreground" />
-                      <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} className="fill-muted-foreground" />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Line type="monotone" dataKey="score" stroke="var(--color-score)" strokeWidth={2} dot={{ r: 5, fill: 'var(--color-score)' }} activeDot={{ r: 7 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-                <div className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <span>Latest:</span>
-                  <Badge
-                    variant={
-                      Math.round(historyAttempts[historyAttempts.length - 1].score) >= 80
-                        ? 'default'
-                        : Math.round(historyAttempts[historyAttempts.length - 1].score) >= 60
-                          ? 'secondary'
-                          : 'destructive'
-                    }
-                  >
-                    {Math.round(historyAttempts[historyAttempts.length - 1].score)}%
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
-                <Trophy className="size-10 mb-3 opacity-40" />
-                <p className="text-sm">Complete a quiz to see your improvement trajectory here</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
-
-      {/* Difficulty & Question Count */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Difficulty Level</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => {
-                const isActive = difficulty === d
+      {/* Dual-column dashboard grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
+        {/* Left Column (Span 7) - Quiz Configuration */}
+        <div className="lg:col-span-7 bg-white border border-slate-200/80 shadow-sm dark:bg-card/30 dark:backdrop-blur-xl dark:border-border/50 dark:shadow-none rounded-2xl p-6 sm:p-7 space-y-8">
+          {/* Select Topics */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <Target className="size-5 text-emerald-500" />
+              <h3 className="text-sm font-semibold text-foreground">Select Topics</h3>
+              <span className="text-xs text-muted-foreground ml-auto">
+                {selectedTopics.length} selected
+              </span>
+            </div>
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              {TOPICS.map((topic, index) => {
+                const isSelected = selectedTopics.includes(topic.id)
                 return (
-                  <Button
-                    key={d}
-                    variant={isActive ? 'default' : 'outline'}
-                    className={`flex-1 capitalize ${
-                      isActive
-                        ? d === 'easy'
-                          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-0 hover:from-emerald-600 hover:to-emerald-700'
-                          : d === 'medium'
-                            ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-0 hover:from-amber-600 hover:to-amber-700'
-                            : 'bg-gradient-to-r from-red-500 to-red-600 text-white border-0 hover:from-red-600 hover:to-red-700'
-                        : ''
+                  <motion.label
+                    key={topic.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className={`relative flex cursor-pointer items-center gap-2.5 rounded-xl border p-2.5 transition-all ${
+                      isSelected
+                        ? 'border-emerald-500/50 bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06]'
+                        : 'border-slate-200/60 dark:border-border/50 hover:border-slate-300 dark:hover:border-border bg-white/40 dark:bg-background/20'
                     }`}
-                    onClick={() => setDifficulty(d)}
                   >
-                    {d}
-                  </Button>
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleTopic(topic.id)}
+                      className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                    />
+                    <span className="text-base">{topic.icon}</span>
+                    <span className="text-xs font-medium">{topic.title}</span>
+                    <AnimatePresence>
+                      {isSelected && (
+                        <motion.div
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                          className="ml-auto flex size-4 shrink-0 items-center justify-center rounded-full bg-emerald-500"
+                        >
+                          <Check className="size-2.5 text-white" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.label>
                 )
               })}
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Number of Questions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Slider
-              value={[questionCount]}
-              onValueChange={([v]) => setQuestionCount(v)}
-              min={3}
-              max={10}
-              step={1}
-            />
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>3</span>
-              <span className="font-medium text-foreground">{questionCount} questions</span>
-              <span>10</span>
+          {/* Custom Topic Input */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <BookOpen className="size-4 text-emerald-500" />
+              <h3 className="text-sm font-semibold text-foreground">Or Type Your Own Topic</h3>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-400">
-          {error}
-        </div>
-      )}
-
-      {/* Generate Button */}
-      <div className="flex items-center gap-3">
-        <Button
-          size="lg"
-          className="flex-1 text-base"
-          disabled={(selectedTopics.length === 0 && !customTopic.trim()) || generating}
-          onClick={handleGenerateQuiz}
-        >
-          <>
-            Generate Quiz with AI
-            <ChevronRight className="size-5" />
-          </>
-        </Button>
-        <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-[11px] font-semibold text-amber-700 dark:text-amber-400 shrink-0">
-          <Sparkles className="size-3.5" />
-          +2,000 XP
-        </div>
-      </div>
-
-      {/* Quiz History */}
-      {historyAttempts.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <History className="size-5 text-primary" />
-                Recent Quizzes
-              </CardTitle>
-              {historyAttempts.length > 3 && (
-                <Button variant="ghost" size="sm" onClick={() => setShowAllHistory(!showAllHistory)}>
-                  {showAllHistory ? 'Show Less' : `See More (${historyAttempts.length})`}
-                  <ChevronRight className={`size-4 ml-1 transition-transform ${showAllHistory ? 'rotate-90' : ''}`} />
-                </Button>
+            <div className="relative">
+              <input
+                type="text"
+                value={customTopic}
+                onChange={(e) => setCustomTopic(e.target.value)}
+                placeholder="e.g. Machine Learning, World History..."
+                className="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 dark:bg-background/40 dark:border-border/50 dark:text-foreground dark:placeholder-muted-foreground rounded-xl px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all"
+              />
+              {customTopic && (
+                <button
+                  onClick={() => setCustomTopic('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-foreground/80"
+                >
+                  ✕
+                </button>
               )}
             </div>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {(showAllHistory ? historyAttempts : historyAttempts.slice(0, 3)).map((att: any) => (
-              <button
-                key={att.id}
-                onClick={() => viewHistoryAttempt(att)}
-                className="flex w-full items-center justify-between rounded-lg border p-3 text-left text-sm hover:bg-muted/50 transition-colors"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium truncate">{att.quiz?.title || 'Quiz'}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(att.completedAt).toLocaleDateString()} &middot; {att.totalQuestions} questions
-                  </p>
+          </div>
+
+          {/* Difficulty & Number of Questions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Difficulty */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Target className="size-4 text-emerald-500" />
+                <h3 className="text-sm font-semibold text-foreground">Difficulty Level</h3>
+              </div>
+              <div className="flex gap-2">
+                {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => {
+                  const isActive = difficulty === d
+                  return (
+                    <button
+                      key={d}
+                      className={`flex-1 capitalize text-xs font-medium py-2 rounded-lg border transition-all ${
+                        isActive
+                          ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                          : 'bg-white border border-slate-200 text-slate-600 dark:bg-card/10 dark:border-border/50 dark:text-muted-foreground hover:bg-slate-50 dark:hover:bg-card/20'
+                      }`}
+                      onClick={() => setDifficulty(d)}
+                    >
+                      {d}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Number of Questions */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Target className="size-4 text-emerald-500" />
+                <h3 className="text-sm font-semibold text-foreground">Number of Questions</h3>
+              </div>
+              <div className="px-1 pt-2 pb-1">
+                <Slider
+                  value={[questionCount]}
+                  onValueChange={([v]) => setQuestionCount(v)}
+                  min={3}
+                  max={10}
+                  step={1}
+                  className="data-[state=active]:bg-emerald-500"
+                />
+                <div className="flex justify-between text-xs text-slate-400 dark:text-muted-foreground/70 mt-2">
+                  <span>3</span>
+                  <span className="font-medium text-slate-700 dark:text-foreground/80">{questionCount} questions</span>
+                  <span>10</span>
                 </div>
-                <Badge className={att.score >= 80 ? 'bg-emerald-500' : att.score >= 60 ? 'bg-amber-500' : 'bg-red-500'}>
-                  {Math.round(att.score)}%
+              </div>
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="rounded-lg border border-red-200/80 dark:border-red-900/40 bg-red-50/80 dark:bg-red-950/20 p-3 text-sm text-red-700 dark:text-red-400 backdrop-blur-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Primary Launch Action */}
+          <div className="flex items-center gap-3 pt-4">
+            <button
+              disabled={(selectedTopics.length === 0 && !customTopic.trim()) || generating}
+              onClick={handleGenerateQuiz}
+               className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl shadow-md shadow-emerald-500/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+            >
+              <Sparkles className="size-4" />
+              Generate Quiz with AI
+              <ChevronRight className="size-4" />
+            </button>
+            <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 shrink-0 whitespace-nowrap">
+              <Sparkles className="size-3.5" />
+              +2,000 XP
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column (Span 5) - Analytics & History Deck */}
+        <div className="lg:col-span-5 space-y-8">
+          {/* Card A: Improvement Trajectory */}
+          {historyAttempts.length > 1 ? (
+            <div className="bg-white border border-slate-200/80 shadow-sm dark:bg-card/30 dark:backdrop-blur-xl dark:border-border/50 dark:shadow-none rounded-2xl p-6 sm:p-7">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Trophy className="size-4 text-emerald-500" />
+                  <h3 className="text-sm font-semibold text-foreground">Improvement Trajectory</h3>
+                </div>
+                <button
+                  onClick={() => setShowFullTrajectory(true)}
+                  className="flex size-7 items-center justify-center rounded-lg hover:bg-white/10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                >
+                  <Maximize2 className="size-3.5" />
+                </button>
+              </div>
+              <ChartContainer config={chartConfig} className="h-[180px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={historyAttempts.map((a: any, i: number) => ({
+                    quiz: `#${i + 1}`,
+                    score: Math.round(a.score),
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-border" />
+                    <XAxis dataKey="quiz" tick={{ fontSize: 11 }} className="fill-slate-400 dark:fill-muted-foreground/60" />
+                    <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} className="fill-slate-400 dark:fill-muted-foreground/60" />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Line type="monotone" dataKey="score" stroke="var(--color-score)" strokeWidth={2} dot={{ r: 4, fill: 'var(--color-score)' }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+              <div className="mt-2 flex items-center justify-center gap-2 text-xs text-slate-400 dark:text-muted-foreground/70">
+                <span>Latest:</span>
+                <Badge
+                  variant={
+                    Math.round(historyAttempts[historyAttempts.length - 1].score) >= 80
+                      ? 'default'
+                      : Math.round(historyAttempts[historyAttempts.length - 1].score) >= 60
+                        ? 'secondary'
+                        : 'destructive'
+                  }
+                  className="text-[11px] px-2 py-0.5"
+                >
+                  {Math.round(historyAttempts[historyAttempts.length - 1].score)}%
                 </Badge>
-              </button>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white border border-slate-200/80 shadow-sm dark:bg-card/30 dark:backdrop-blur-xl dark:border-border/50 dark:shadow-none rounded-2xl p-6 sm:p-7">
+              <div className="flex flex-col items-center justify-center py-8 text-center text-slate-400 dark:text-muted-foreground/70">
+                <Trophy className="size-8 mb-2 opacity-40" />
+                <p className="text-xs">Complete a quiz to see your improvement trajectory here</p>
+              </div>
+            </div>
+          )}
+
+          {/* Card B: Recent Quizzes */}
+          {historyAttempts.length > 0 && (
+            <div className="bg-white border border-slate-200/80 shadow-sm dark:bg-card/30 dark:backdrop-blur-xl dark:border-border/50 dark:shadow-none rounded-2xl p-6 sm:p-7">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <History className="size-4 text-emerald-500" />
+                  <h3 className="text-sm font-semibold text-foreground">Recent Quizzes</h3>
+                </div>
+                {historyAttempts.length > 3 && (
+                  <button
+                    onClick={() => setShowAllHistory(!showAllHistory)}
+                    className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
+                  >
+                    {showAllHistory ? 'Show Less' : `See More (${historyAttempts.length})`}
+                  </button>
+                )}
+              </div>
+              <div className="max-h-[400px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-border space-y-2">
+                {(showAllHistory ? historyAttempts : historyAttempts.slice(0, 3)).map((att: any) => (
+                  <button
+                    key={att.id}
+                    onClick={() => viewHistoryAttempt(att)}
+                     className="flex w-full items-center justify-between rounded-xl border border-slate-200/60 dark:border-border/50 p-3 text-left text-xs hover:bg-white/40 dark:hover:bg-background/30 transition-colors group"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-slate-700 dark:text-foreground/80 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        {att.quiz?.title || 'Quiz'}
+                      </p>
+                      <p className="text-[11px] text-slate-400 dark:text-muted-foreground/70 mt-0.5">
+                        {new Date(att.completedAt).toLocaleDateString()} &middot; {att.totalQuestions} questions
+                      </p>
+                    </div>
+                    <Badge
+                      className={
+                        att.score >= 80
+                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-0 text-[11px]'
+                          : att.score >= 60
+                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-0 text-[11px]'
+                            : 'bg-red-500/15 text-red-600 dark:text-red-400 border-0 text-[11px]'
+                      }
+                    >
+                      {Math.round(att.score)}%
+                    </Badge>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </motion.div>
   )
-
   // ── Step 2: Active Quiz ──────────────────────────────────────────────────
 
   const renderActiveQuizStep = () => {
@@ -1045,6 +1040,8 @@ export default function QuizGenerator() {
 
   // ── Step 3: Results ──────────────────────────────────────────────────────
 
+  const RING_CIRCUMFERENCE = 301.592
+
   const renderResultsStep = () => (
     <motion.div
       key="results"
@@ -1054,26 +1051,35 @@ export default function QuizGenerator() {
       className="mx-auto max-w-3xl space-y-6 p-4 md:p-8"
     >
       {/* Score Display */}
-      <Card className="text-center">
+      <Card className="text-center bg-white border border-slate-200/60 dark:bg-card/30 dark:backdrop-blur-xl dark:border-border/50 shadow-sm">
         <CardContent className="relative pt-8 pb-8 overflow-visible">
           {/* Confetti effect for high scores */}
           {scorePercent >= 80 && <ConfettiEffect />}
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
-            className="mx-auto mb-4 relative flex size-28 items-center justify-center rounded-full"
-            style={{
-              background:
-                scorePercent >= 80
-                  ? 'oklch(0.85 0.15 145)'
-                  : scorePercent >= 60
-                    ? 'oklch(0.85 0.12 80)'
-                    : 'oklch(0.85 0.12 25)',
-            }}
-          >
-            <span className="text-3xl font-bold">{scorePercent}%</span>
-          </motion.div>
+
+          {/* Radial Progress Ring */}
+          <div className="mx-auto mb-4 relative flex size-32 items-center justify-center">
+            <svg className="absolute inset-0 -rotate-90" viewBox="0 0 120 120" fill="none">
+              <circle
+                cx="60" cy="60" r="48"
+                strokeWidth="8"
+                className="stroke-slate-100 dark:stroke-border"
+              />
+              <motion.circle
+                cx="60" cy="60" r="48"
+                strokeWidth="8"
+                strokeLinecap="round"
+                className="stroke-rose-400 dark:stroke-rose-500/80"
+                strokeDasharray={`${(scorePercent / 100) * RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`}
+                initial={{ strokeDasharray: `0 ${RING_CIRCUMFERENCE}` }}
+                animate={{ strokeDasharray: `${(scorePercent / 100) * RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}` }}
+                transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
+              />
+            </svg>
+            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">
+              {scorePercent}%
+            </span>
+          </div>
+
           <div className="flex items-center justify-center gap-2 mb-2">
             <Trophy
               className={`size-6 ${
@@ -1107,21 +1113,21 @@ export default function QuizGenerator() {
 
       {/* Accuracy Breakdown */}
       <div className="grid grid-cols-3 gap-4">
-        <Card>
+        <Card className="bg-white border border-slate-100 dark:bg-card/10 dark:border-border/50 shadow-sm">
           <CardContent className="flex flex-col items-center pt-6 pb-6">
             <CheckCircle2 className="mb-2 size-8 text-emerald-600" />
             <span className="text-2xl font-bold text-emerald-600">{correctCount}</span>
             <span className="text-sm text-muted-foreground">Correct</span>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white border border-slate-100 dark:bg-card/10 dark:border-border/50 shadow-sm">
           <CardContent className="flex flex-col items-center pt-6 pb-6">
             <XCircle className="mb-2 size-8 text-red-500" />
             <span className="text-2xl font-bold text-red-500">{incorrectCount}</span>
             <span className="text-sm text-muted-foreground">Incorrect</span>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white border border-slate-100 dark:bg-card/10 dark:border-border/50 shadow-sm">
           <CardContent className="flex flex-col items-center pt-6 pb-6">
             <AlertTriangle className="mb-2 size-8 text-amber-500" />
             <span className="text-2xl font-bold text-amber-500">{unansweredCount}</span>
@@ -1132,7 +1138,7 @@ export default function QuizGenerator() {
 
       {/* Weak Areas */}
       {weakAreaList.length > 0 && (
-        <Card>
+        <Card className="bg-white border border-slate-200/60 dark:bg-card/30 dark:backdrop-blur-xl dark:border-border/50 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <AlertTriangle className="size-5 text-amber-500" />
@@ -1158,7 +1164,7 @@ export default function QuizGenerator() {
       )}
 
       {/* Score History - Mini Bar Chart */}
-      <Card>
+      <Card className="bg-white border border-slate-200/60 dark:bg-card/30 dark:backdrop-blur-xl dark:border-border/50 shadow-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <History className="size-5 text-primary" />
@@ -1170,18 +1176,18 @@ export default function QuizGenerator() {
           <ChartContainer config={chartConfig} className="h-[160px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={scoreHistory} barCategoryGap="20%">
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-border" vertical={false} />
                 <XAxis
                   dataKey="quiz"
                   tick={{ fontSize: 12 }}
-                  className="fill-muted-foreground"
+                  className="fill-slate-400 dark:fill-muted-foreground/60"
                   tickLine={false}
                   axisLine={false}
                 />
                 <YAxis
                   domain={[0, 100]}
                   tick={{ fontSize: 12 }}
-                  className="fill-muted-foreground"
+                  className="fill-slate-400 dark:fill-muted-foreground/60"
                   tickLine={false}
                   axisLine={false}
                 />
@@ -1192,10 +1198,10 @@ export default function QuizGenerator() {
                       key={`cell-${idx}`}
                       fill={
                         entry.score >= 80
-                          ? 'oklch(0.7 0.18 145)'
+                          ? 'oklch(0.6 0.18 145)'
                           : entry.score >= 60
-                            ? 'oklch(0.75 0.15 80)'
-                            : 'oklch(0.65 0.2 25)'
+                            ? 'oklch(0.68 0.17 80)'
+                            : 'oklch(0.65 0.18 15)'
                       }
                     />
                   ))}
@@ -1211,7 +1217,7 @@ export default function QuizGenerator() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="flex items-center justify-center gap-2 rounded-xl border border-amber-500/20 bg-gradient-to-r from-amber-500/5 via-amber-500/10 to-amber-500/5 px-4 py-3 text-sm"
+        className="flex items-center justify-center gap-2 rounded-xl border border-amber-500/20 bg-gradient-to-r from-amber-500/5 via-amber-500/10 to-amber-500/5 px-4 py-3 text-sm pt-4 mt-2"
       >
         <Sparkles className="size-4 text-amber-500" />
         <span className="text-muted-foreground">
@@ -1219,8 +1225,6 @@ export default function QuizGenerator() {
         </span>
         <Sparkles className="size-4 text-amber-500" />
       </motion.div>
-
-
 
       {/* Action Buttons */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -1236,7 +1240,10 @@ export default function QuizGenerator() {
           <Brain className="size-4" />
           Review Mistakes
         </Button>
-        <Button onClick={handleRetake} className="gap-2">
+        <Button
+          onClick={handleRetake}
+          className="gap-2 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white dark:from-white dark:to-slate-100 dark:text-slate-900 font-medium transition-all shadow-md px-5 rounded-xl border-0"
+        >
           <RotateCcw className="size-4" />
           Retake Quiz
         </Button>
@@ -1480,7 +1487,7 @@ export default function QuizGenerator() {
 
   return (
     <>
-      <div className="h-full overflow-y-auto">
+      <div className="h-full overflow-y-auto bg-slate-50/50 dark:bg-transparent">
         <AnimatePresence mode="wait">
           {step === 'selection' && renderSelectionStep()}
           {step === 'loading' && renderLoadingStep()}

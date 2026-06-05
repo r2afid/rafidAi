@@ -24,7 +24,7 @@ import { resolveOptionText } from './types'
 interface CenterPanelProps {
   question: QuizQuestion
   attemptId: string
-  activeTab: 'diagnosis' | 'mastery'
+  activeTab: 'diagnosis' | 'mastery' | 'misconceptions'
   explanation: MistakeExplanationData | null
   isLoading: boolean
   questionNumber?: number
@@ -106,11 +106,12 @@ export default function CenterPanel({ question, attemptId, activeTab, explanatio
   }
 
   if (!question.isCorrect) {
+    if (activeTab === 'misconceptions') return null
     const isDiagnosis = activeTab === 'diagnosis'
 
     return (
       <div className="flex flex-col gap-4">
-        <Card className="bg-card/50 backdrop-blur-sm border-l-4 border-l-rose-500/60">
+        <Card className="bg-card/60 backdrop-blur-xl border-l-4 border-l-rose-500/60">
           <CardContent className="p-3 space-y-2">
             <div className="flex items-start gap-3">
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-600">
@@ -137,7 +138,8 @@ export default function CenterPanel({ question, attemptId, activeTab, explanatio
         </Card>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-16 px-6 space-y-6">
+          <div className="bg-card/60 backdrop-blur-xl border border-border/50 rounded-2xl p-6">
+            <div className="flex flex-col items-center justify-center py-10 space-y-6">
             {/* Animated brain with orbiting rings */}
             <div className="relative flex items-center justify-center">
               <motion.div
@@ -196,12 +198,13 @@ export default function CenterPanel({ question, attemptId, activeTab, explanatio
               ))}
             </div>
           </div>
+          </div>
         ) : explanation ? (
           <>
             {isDiagnosis ? (
               <div className="space-y-4">
-                <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border border-rose-500/20">
-                  <CardContent className="p-3">
+                <Card className="bg-card/60 backdrop-blur-xl overflow-hidden border-border/50 rounded-2xl shadow-none">
+                  <CardContent className="p-4">
                     <div className="flex items-center gap-2.5 mb-2">
                       <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-rose-500/15 text-rose-600 text-[11px] font-bold">
                         1
@@ -235,8 +238,8 @@ export default function CenterPanel({ question, attemptId, activeTab, explanatio
                   </CardContent>
                 </Card>
 
-                <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border border-border/60">
-                  <CardContent className="p-3">
+                <Card className="bg-card/60 backdrop-blur-xl overflow-hidden border-border/50 rounded-2xl shadow-none">
+                  <CardContent className="p-4">
                     <div className="flex items-center gap-2.5 mb-2">
                       <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-violet-600 text-[11px] font-bold">
                         2
@@ -299,8 +302,8 @@ export default function CenterPanel({ question, attemptId, activeTab, explanatio
                   </CardContent>
                 </Card>
 
-                <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border border-emerald-500/20">
-                  <CardContent className="p-3">
+                <Card className="bg-card/60 backdrop-blur-xl overflow-hidden border-border/50 rounded-2xl shadow-none">
+                  <CardContent className="p-4">
                     <div className="flex items-center gap-2.5 mb-2">
                       <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 text-[11px] font-bold">
                         3
@@ -346,8 +349,8 @@ export default function CenterPanel({ question, attemptId, activeTab, explanatio
               </div>
             ) : (
               <div className="space-y-4">
-                <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border border-border/60">
-                  <CardContent className="p-3">
+                <Card className="bg-card/60 backdrop-blur-xl overflow-hidden border-border/50 rounded-2xl shadow-none">
+                  <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="flex size-6 shrink-0 items-center justify-center rounded bg-emerald-500/15">
                         <BookOpen className="size-3.5 text-emerald-600" />
@@ -370,8 +373,8 @@ export default function CenterPanel({ question, attemptId, activeTab, explanatio
                   </CardContent>
                 </Card>
 
-                <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border border-border/60">
-                  <CardContent className="p-3">
+                <Card className="bg-card/60 backdrop-blur-xl overflow-hidden border-border/50 rounded-2xl shadow-none">
+                  <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="flex size-6 shrink-0 items-center justify-center rounded bg-violet-500/15">
                         <Sparkles className="size-3.5 text-violet-600" />
@@ -388,8 +391,8 @@ export default function CenterPanel({ question, attemptId, activeTab, explanatio
                   </CardContent>
                 </Card>
 
-                <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border border-border/60">
-                  <CardContent className="p-3">
+                <Card className="bg-card/60 backdrop-blur-xl overflow-hidden border-border/50 rounded-2xl shadow-none">
+                  <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="flex size-6 shrink-0 items-center justify-center rounded bg-blue-500/15">
                         <ListChecks className="size-3.5 text-blue-600" />
@@ -436,8 +439,8 @@ export default function CenterPanel({ question, attemptId, activeTab, explanatio
                   </CardContent>
                 </Card>
 
-                <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border border-amber-500/20">
-                  <CardContent className="p-3">
+                <Card className="bg-card/60 backdrop-blur-xl overflow-hidden border-border/50 rounded-2xl shadow-none">
+                  <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-1.5">
                       <div className="flex size-6 shrink-0 items-center justify-center rounded bg-amber-500/15">
                         <Shield className="size-3.5 text-amber-600" />
@@ -455,8 +458,8 @@ export default function CenterPanel({ question, attemptId, activeTab, explanatio
                 </Card>
 
                 {explanation.relatedTopics.length > 0 && (
-                  <Card className="bg-card/50 backdrop-blur-sm border border-border/60">
-                    <CardContent className="p-3">
+                  <Card className="bg-card/60 backdrop-blur-xl border-border/50 rounded-2xl shadow-none">
+                    <CardContent className="p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="flex size-6 shrink-0 items-center justify-center rounded bg-muted">
                           <ChevronRight className="size-3.5 text-muted-foreground" />
@@ -511,9 +514,11 @@ export default function CenterPanel({ question, attemptId, activeTab, explanatio
     )
   }
 
+  if (activeTab === 'misconceptions') return null
+
   return (
     <div className="flex items-center justify-center h-full">
-      <Card className="max-w-md bg-card/50 backdrop-blur-sm">
+      <Card className="max-w-md bg-card/60 backdrop-blur-xl border-border/50 rounded-2xl shadow-none">
         <CardContent className="p-6 text-center">
           <div className="flex justify-center mb-3">
             <div className="flex size-12 items-center justify-center rounded-full bg-emerald-500/15">

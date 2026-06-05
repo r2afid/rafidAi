@@ -6,6 +6,9 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip as ReTooltip, ResponsiveContainer, AreaChart, Area,
   PieChart, Pie, Cell,
+  type TooltipProps,
+  type ValueType,
+  type NameType,
 } from 'recharts'
 import {
   Heart, Brain, Activity, Flame, Moon, Sun,
@@ -29,6 +32,27 @@ const defaultStressFactors = [
 
 interface WellbeingDashboardProps {
   onEmergency: () => void
+}
+
+const ChartTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 rounded-xl px-4 py-3 shadow-2xl shadow-black/40">
+      <p className="text-slate-100 text-xs font-semibold mb-2 pb-2 border-b border-slate-700/50">
+        {label}
+      </p>
+      <div className="space-y-1.5">
+        {payload.map((entry, i) => (
+          <div key={i} className="flex items-center justify-between gap-6 text-xs">
+            <span className="text-slate-400">{entry.name}</span>
+            <span className="font-bold tabular-nums" style={{ color: entry.color }}>
+              {entry.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export default function WellbeingDashboard({ onEmergency }: WellbeingDashboardProps) {
@@ -262,14 +286,14 @@ export default function WellbeingDashboard({ onEmergency }: WellbeingDashboardPr
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={moodTrend.length > 0 ? moodTrend : [{ day: 'No data', mood: 0, stress: 0, energy: 0 }]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--border))" />
-                <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="oklch(var(--muted-foreground))" />
-                <YAxis domain={[0, 10]} tick={{ fontSize: 11 }} stroke="oklch(var(--muted-foreground))" />
-                <ReTooltip />
-                <Line type="monotone" dataKey="mood" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981', r: 3 }} />
-                <Line type="monotone" dataKey="stress" stroke="#ef4444" strokeWidth={2} dot={{ fill: '#ef4444', r: 3 }} />
-                <Line type="monotone" dataKey="energy" stroke="#8b5cf6" strokeWidth={2} dot={{ fill: '#8b5cf6', r: 3 }} />
+              <LineChart data={moodTrend.length > 0 ? moodTrend : [{ day: 'No data', mood: 0, stress: 0, energy: 0 }]} margin={{ top: 5, right: 15, bottom: 5, left: 30 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgb(51 65 85 / 0.6)" />
+                <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#94a3b8' }} stroke="#475569" />
+                <YAxis domain={[0, 10]} tick={{ fontSize: 11, fill: '#94a3b8' }} stroke="#475569" />
+                <ReTooltip content={<ChartTooltip />} cursor={{ stroke: 'rgb(148 163 184 / 0.3)', strokeDasharray: '3 3' }} />
+                <Line type="monotone" dataKey="mood" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981', r: 3 }} name="Mood" />
+                <Line type="monotone" dataKey="stress" stroke="#ef4444" strokeWidth={2} dot={{ fill: '#ef4444', r: 3 }} name="Stress" />
+                <Line type="monotone" dataKey="energy" stroke="#8b5cf6" strokeWidth={2} dot={{ fill: '#8b5cf6', r: 3 }} name="Energy" />
               </LineChart>
             </ResponsiveContainer>
             <div className="flex items-center justify-center gap-4 mt-2 text-xs text-muted-foreground">
@@ -328,10 +352,10 @@ export default function WellbeingDashboard({ onEmergency }: WellbeingDashboardPr
         <CardContent>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={productivityTrend.length > 0 ? productivityTrend : [{ week: 'No data', focus: 0, study: 0, break: 0 }]}>
-              <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--border))" />
-              <XAxis dataKey="week" tick={{ fontSize: 11 }} stroke="oklch(var(--muted-foreground))" />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="oklch(var(--muted-foreground))" />
-              <ReTooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgb(51 65 85 / 0.6)" />
+              <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#94a3b8' }} stroke="#475569" />
+              <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#94a3b8' }} stroke="#475569" />
+              <ReTooltip content={<ChartTooltip />} cursor={{ fill: 'rgb(148 163 184 / 0.08)' }} />
               <Bar dataKey="focus" fill="#10b981" radius={[4, 4, 0, 0]} name="Focus Score" />
               <Bar dataKey="study" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="Study Efficiency" />
               <Bar dataKey="break" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Break Quality" />
